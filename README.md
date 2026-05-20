@@ -1,0 +1,1 @@
+# GitHub Connector Demo\n\nQuesto repository è stato creato automaticamente per testare il connettore GitHub.\n\n## Funzionalità testate\n- Creazione repository\n- Gestione issues\n- Gestione gist\n- API GitHub
