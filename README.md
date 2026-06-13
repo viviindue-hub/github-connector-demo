@@ -24,6 +24,24 @@ npm run build      # bundle statico in dist/
 Trascina un file `.igc` nella pagina. Tutta l'analisi della Fase 1 avviene
 **nel browser**: il file non lascia il tuo computer.
 
+### Deploy su Hostinger (o qualsiasi hosting statico)
+
+```bash
+npm install
+npm run build      # genera dist/ con path RELATIVI
+```
+
+Carica **il contenuto** di `dist/` (cioè `index.html`, la cartella `assets/`
+e la cartella `cesium/`) in `public_html` su Hostinger. Funziona sia nella
+root del dominio sia in una sottocartella, perché il build usa `base: './'`
+(path relativi).
+
+> **Pagina bianca?** Quasi sempre è un problema di path: un build con path
+> assoluti (`/assets/...`) punta alla root del dominio e dà 404 → il browser
+> non carica il bundle JS e mostra una pagina vuota. Con `base: './'`
+> (default attuale) il problema sparisce. Verifica anche di aver caricato
+> **anche** le cartelle `assets/` e `cesium/`, non solo `index.html`.
+
 ### Variabili d'ambiente (opzionali)
 
 | Variabile | Effetto |
