@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  ArcType,
   BoundingSphere,
   CallbackProperty,
   Cartesian3,
+  Color,
   GeometryInstance,
   HeadingPitchRange,
   Math as CesiumMath,
-  Matrix4,
+  PolylineArrowMaterialProperty,
   PolylineColorAppearance,
   PolylineGeometry,
   Primitive,
@@ -19,25 +21,23 @@ import { buildTrackGeometry, indexAtTime, positionAtTime } from './replay';
 import { varioColor } from './varioScale';
 import { createImageryLayer, createTerrain } from './providers';
 import { VarioLegend } from '../components/VarioLegend';
+import { destination } from '../lib/geo';
 
-// Silhouette glider (freccia di navigazione) bianca: la tinta del billboard
-// la colora per vario, la forma indica la rotta.
-const GLIDER_SVG =
-  'data:image/svg+xml,' +
-  encodeURIComponent(
-    "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'>" +
-      "<path d='M32 5 L53 54 L32 43 L11 54 Z' fill='white' stroke='rgba(0,0,0,0.6)' stroke-width='3.5' stroke-linejoin='round'/>" +
-      '</svg>',
-  );
+/** Punto ~140 m davanti al pilota nella direzione di volo (per la freccia 3D). */
+function aheadPosition(lat: number, lon: number, alt: number, headingDeg: number): Cartesian3 {
+  const p = destination(lat, lon, headingDeg, 140);
+  return Cartesian3.fromDegrees(p.lon, p.lat, alt);
+}
 
 export function CesiumViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const pilotRef = useRef<Entity | null>(null);
+  const headingRef = useRef<Entity | null>(null);
   const trackPrimitiveRef = useRef<Primitive | null>(null);
   // posizione corrente letta dalla CallbackProperty (evita re-render React)
   const currentPosRef = useRef<Cartesian3>(new Cartesian3());
-  const currentHeadingRef = useRef<number>(0);
+  const aheadPosRef = useRef<Cartesian3>(new Cartesian3());
   const currentVarioRef = useRef<number>(0);
   // true quando il viewer Cesium (creazione asincrona) è pronto: serve a
   // rieseguire il setup della traccia anche se il volo era già presente al mount
@@ -101,6 +101,10 @@ export function CesiumViewer() {
         viewer.entities.remove(pilotRef.current);
         pilotRef.current = null;
       }
+      if (headingRef.current) {
+        viewer.entities.remove(headingRef.current);
+        headingRef.current = null;
+      }
 
       const { positions, colors } = buildTrackGeometry(series);
       const primitive = new Primitive({
@@ -119,23 +123,38 @@ export function CesiumViewer() {
       trackPrimitiveRef.current = primitive;
 
       const t0 = useStore.getState().currentTime;
-      currentPosRef.current = positionAtTime(series, t0);
       const i0 = indexAtTime(series, t0);
-      currentHeadingRef.current = series.heading[i0];
+      currentPosRef.current = positionAtTime(series, t0);
       currentVarioRef.current = series.vario[i0];
+      aheadPosRef.current = aheadPosition(
+        series.lat[i0],
+        series.lon[i0],
+        series.alt[i0],
+        series.heading[i0],
+      );
+      // pilota: punto colorato per vario (la pallina), seguibile dalla camera
       pilotRef.current = viewer.entities.add({
         position: new CallbackProperty(() => currentPosRef.current, false) as never,
-        billboard: {
-          image: GLIDER_SVG,
-          width: 32,
-          height: 32,
-          rotation: new CallbackProperty(
-            () => CesiumMath.toRadians(-currentHeadingRef.current),
+        // offset camera quando il pilota è "tracked": dietro e sopra
+        viewFrom: new Cartesian3(0, -1800, 1100) as never,
+        point: {
+          pixelSize: 15,
+          color: new CallbackProperty(() => varioColor(currentVarioRef.current, 1), false) as never,
+          outlineColor: Color.BLACK,
+          outlineWidth: 2,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      });
+      // direzione di volo: freccia in spazio-mondo (corretta da ogni angolazione)
+      headingRef.current = viewer.entities.add({
+        polyline: {
+          positions: new CallbackProperty(
+            () => [currentPosRef.current, aheadPosRef.current],
             false,
           ) as never,
-          alignedAxis: Cartesian3.ZERO,
-          color: new CallbackProperty(() => varioColor(currentVarioRef.current, 1), false) as never,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          width: 12,
+          arcType: ArcType.NONE,
+          material: new PolylineArrowMaterialProperty(Color.WHITE),
         },
       });
 
@@ -163,35 +182,38 @@ export function CesiumViewer() {
     };
   }, [series, viewerReady]);
 
-  // aggiornamento posizione pilota a ogni tick del clock di replay
+  // aggiornamento posizione/freccia pilota a ogni tick del clock di replay
   useEffect(() => {
     const unsub = useStore.subscribe((state) => {
       if (!state.series) return;
-      currentPosRef.current = positionAtTime(state.series, state.currentTime);
       const i = indexAtTime(state.series, state.currentTime);
-      currentHeadingRef.current = state.series.heading[i];
+      currentPosRef.current = positionAtTime(state.series, state.currentTime);
       currentVarioRef.current = state.series.vario[i];
-      const viewer = viewerRef.current;
-      if (viewer && !viewer.isDestroyed() && state.followPilot && pilotRef.current) {
-        // heading fisso (nord in alto) per evitare derive di rotazione
-        viewer.camera.lookAt(
-          currentPosRef.current,
-          new HeadingPitchRange(0, CesiumMath.toRadians(-35), 2200),
-        );
-      }
+      aheadPosRef.current = aheadPosition(
+        state.series.lat[i],
+        state.series.lon[i],
+        state.series.alt[i],
+        state.series.heading[i],
+      );
     });
     return unsub;
   }, []);
+
+  // "segui": usa il tracked entity di Cesium → la camera segue il pilota ma
+  // l'utente può ruotare/zoomare liberamente attorno. Niente lookAt forzato.
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+    viewer.trackedEntity = followPilot ? pilotRef.current ?? undefined : undefined;
+  }, [followPilot, viewerReady, series]);
 
   // fly-to richiesto da un anchor del coach o dalla lista termiche
   useEffect(() => {
     const viewer = viewerRef.current;
     if (!viewer || viewer.isDestroyed() || !flyTo) return;
-    // se "segui" è attivo, il pilota è già stato portato sul punto (currentTime)
-    // e il follow lo centra: un fly-to qui litigherebbe con il lookAt.
+    // con "segui" attivo il pilota è già portato sul punto (currentTime) e la
+    // camera lo segue: un fly-to qui verrebbe comunque sovrascritto dal tracking.
     if (useStore.getState().followPilot) return;
-    // rilascia un eventuale frame agganciato da un follow precedente
-    viewer.camera.lookAtTransform(Matrix4.IDENTITY);
     // inquadra il punto CENTRANDOLO (bounding sphere) invece di metterci la camera sopra
     const target = Cartesian3.fromDegrees(flyTo.lon, flyTo.lat, flyTo.alt);
     viewer.camera.flyToBoundingSphere(new BoundingSphere(target, 1200), {
@@ -199,14 +221,6 @@ export function CesiumViewer() {
       duration: 1.5,
     });
   }, [flyTo]);
-
-  // sgancia la camera quando follow viene disattivato
-  useEffect(() => {
-    const viewer = viewerRef.current;
-    if (viewer && !viewer.isDestroyed() && !followPilot) {
-      viewer.camera.lookAtTransform(Matrix4.IDENTITY);
-    }
-  }, [followPilot]);
 
   return (
     <div className="cesium-wrap">
