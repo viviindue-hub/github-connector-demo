@@ -25,9 +25,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+        # base relativo './' (default): gli asset e la cartella cesium
+        # restano in dist/ e i path funzionano sotto /<repo>/ su Pages.
+        # NON passare GITHUB_PAGES_BASE: con un base assoluto vite-plugin-cesium
+        # copia cesium/ nella sottocartella sbagliata e Cesium.js dà 404.
       - run: npm run build
-        env:
-          GITHUB_PAGES_BASE: /${{ github.event.repository.name }}/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

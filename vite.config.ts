@@ -3,10 +3,11 @@ import react from '@vitejs/plugin-react';
 import cesium from 'vite-plugin-cesium';
 
 export default defineConfig({
-  // GitHub Pages serve l'app sotto /<nome-repo>/ (CI imposta GITHUB_PAGES_BASE).
-  // Default './' = path relativi: il bundle funziona ovunque (Hostinger, sottocartelle,
-  // apertura locale) senza dover stare per forza nella root del dominio.
-  base: process.env.GITHUB_PAGES_BASE ?? './',
+  // Base relativo: il bundle funziona ovunque (GitHub Pages sotto /<repo>/,
+  // Hostinger, sottocartelle, apertura locale) senza dover stare nella root
+  // del dominio. NB: con un base assoluto vite-plugin-cesium copia la cartella
+  // cesium/ nel posto sbagliato e Cesium.js dà 404 → niente da cambiare qui.
+  base: './',
   plugins: [react(), cesium()],
   server: {
     host: '0.0.0.0',
