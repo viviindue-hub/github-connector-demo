@@ -11,7 +11,7 @@ export function UploadDropzone() {
   const errorMsg = useStore((s) => s.errorMsg);
 
   const handleFile = useCallback(async (file: File) => {
-    const { setLoading, setError, setFlight, updateSeries } = useStore.getState();
+    const { setLoading, setError, setFlight, updateSeries, setWeather } = useStore.getState();
     setLoading();
     try {
       const text = await file.text();
@@ -19,29 +19,31 @@ export function UploadDropzone() {
       let series = preprocess(track);
       let analysis = analyze(series);
 
-      // meteo del giorno al decollo (non bloccante in caso di errore)
-      const midIdx = Math.floor(series.t.length / 2);
-      const midHourUtc = new Date(series.t[midIdx]).getUTCHours();
-      const weather = await fetchFlightWeather(
-        series.lat[0],
-        series.lon[0],
-        track.date,
-        midHourUtc,
-      );
-
+      // mostra subito il volo: meteo e AGL arrivano in background e non
+      // devono bloccare la visualizzazione di mappa e statistiche
       setFlight({
         track,
         series,
         analysis,
-        weather,
-        summaryForAI: buildSummaryForAI(track, analysis, 'it', weather),
+        weather: undefined,
+        summaryForAI: buildSummaryForAI(track, analysis, 'it', undefined),
       });
+
+      // meteo del giorno al decollo (non bloccante: se fallisce, niente card)
+      const midIdx = Math.floor(series.t.length / 2);
+      const midHourUtc = new Date(series.t[midIdx]).getUTCHours();
+      void fetchFlightWeather(series.lat[0], series.lon[0], track.date, midHourUtc)
+        .then((weather) => {
+          if (weather) setWeather(weather, buildSummaryForAI(track, analysis, 'it', weather));
+        })
+        .catch(() => {});
 
       // AGL in background: quando arriva, ricalcola i detector che lo usano
       const withAgl = await attachAgl(series, openMeteoElevation);
       if (withAgl.agl) {
         series = withAgl;
         analysis = analyze(series);
+        const weather = useStore.getState().weather;
         updateSeries(series, analysis, buildSummaryForAI(track, analysis, 'it', weather));
       }
     } catch (err) {

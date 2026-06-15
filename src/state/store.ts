@@ -43,6 +43,7 @@ interface AppState {
     summaryForAI: FlightSummaryForAI;
   }) => void;
   updateSeries: (series: DerivedSeries, analysis: FlightAnalysis, summaryForAI: FlightSummaryForAI) => void;
+  setWeather: (weather: WeatherSummary, summaryForAI: FlightSummaryForAI) => void;
   setTime: (t: number) => void;
   setPlaying: (p: boolean) => void;
   setSpeed: (s: number) => void;
@@ -79,6 +80,7 @@ export const useStore = create<AppState>((set) => ({
       playing: false,
     }),
   updateSeries: (series, analysis, summaryForAI) => set({ series, analysis, summaryForAI }),
+  setWeather: (weather, summaryForAI) => set({ weather, summaryForAI }),
   setTime: (t) => set({ currentTime: t }),
   setPlaying: (p) => set({ playing: p }),
   setSpeed: (s) => set({ speed: s }),

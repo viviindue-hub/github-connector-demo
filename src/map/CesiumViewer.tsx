@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   CallbackProperty,
   Cartesian3,
@@ -25,6 +25,9 @@ export function CesiumViewer() {
   const trackPrimitiveRef = useRef<Primitive | null>(null);
   // posizione corrente letta dalla CallbackProperty (evita re-render React)
   const currentPosRef = useRef<Cartesian3>(new Cartesian3());
+  // true quando il viewer Cesium (creazione asincrona) è pronto: serve a
+  // rieseguire il setup della traccia anche se il volo era già presente al mount
+  const [viewerReady, setViewerReady] = useState(false);
 
   const series = useStore((s) => s.series);
   const flyTo = useStore((s) => s.flyTo);
@@ -57,12 +60,14 @@ export function CesiumViewer() {
       });
       viewer.scene.globe.depthTestAgainstTerrain = true;
       viewerRef.current = viewer;
+      setViewerReady(true);
     })();
 
     return () => {
       disposed = true;
       viewerRef.current?.destroy();
       viewerRef.current = null;
+      setViewerReady(false);
     };
   }, []);
 
@@ -133,7 +138,7 @@ export function CesiumViewer() {
     return () => {
       cancelled = true;
     };
-  }, [series]);
+  }, [series, viewerReady]);
 
   // aggiornamento posizione pilota a ogni tick del clock di replay
   useEffect(() => {
