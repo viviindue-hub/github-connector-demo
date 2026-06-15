@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   CallbackProperty,
   Cartesian3,
-  Color,
   GeometryInstance,
   HeadingPitchRange,
   Math as CesiumMath,
@@ -15,8 +14,20 @@ import {
   type Entity,
 } from 'cesium';
 import { useStore } from '../state/store';
-import { buildTrackGeometry, positionAtTime } from './replay';
+import { buildTrackGeometry, indexAtTime, positionAtTime } from './replay';
+import { varioColor } from './varioScale';
 import { createImageryLayer, createTerrain } from './providers';
+import { VarioLegend } from '../components/VarioLegend';
+
+// Silhouette glider (freccia di navigazione) bianca: la tinta del billboard
+// la colora per vario, la forma indica la rotta.
+const GLIDER_SVG =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'>" +
+      "<path d='M32 5 L53 54 L32 43 L11 54 Z' fill='white' stroke='rgba(0,0,0,0.6)' stroke-width='3.5' stroke-linejoin='round'/>" +
+      '</svg>',
+  );
 
 export function CesiumViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,6 +36,8 @@ export function CesiumViewer() {
   const trackPrimitiveRef = useRef<Primitive | null>(null);
   // posizione corrente letta dalla CallbackProperty (evita re-render React)
   const currentPosRef = useRef<Cartesian3>(new Cartesian3());
+  const currentHeadingRef = useRef<number>(0);
+  const currentVarioRef = useRef<number>(0);
   // true quando il viewer Cesium (creazione asincrona) è pronto: serve a
   // rieseguire il setup della traccia anche se il volo era già presente al mount
   const [viewerReady, setViewerReady] = useState(false);
@@ -104,14 +117,23 @@ export function CesiumViewer() {
       viewer.scene.primitives.add(primitive);
       trackPrimitiveRef.current = primitive;
 
-      currentPosRef.current = positionAtTime(series, useStore.getState().currentTime);
+      const t0 = useStore.getState().currentTime;
+      currentPosRef.current = positionAtTime(series, t0);
+      const i0 = indexAtTime(series, t0);
+      currentHeadingRef.current = series.heading[i0];
+      currentVarioRef.current = series.vario[i0];
       pilotRef.current = viewer.entities.add({
         position: new CallbackProperty(() => currentPosRef.current, false) as never,
-        point: {
-          pixelSize: 13,
-          color: Color.YELLOW,
-          outlineColor: Color.BLACK,
-          outlineWidth: 2,
+        billboard: {
+          image: GLIDER_SVG,
+          width: 32,
+          height: 32,
+          rotation: new CallbackProperty(
+            () => CesiumMath.toRadians(-currentHeadingRef.current),
+            false,
+          ) as never,
+          alignedAxis: Cartesian3.ZERO,
+          color: new CallbackProperty(() => varioColor(currentVarioRef.current, 1), false) as never,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
       });
@@ -145,6 +167,9 @@ export function CesiumViewer() {
     const unsub = useStore.subscribe((state) => {
       if (!state.series) return;
       currentPosRef.current = positionAtTime(state.series, state.currentTime);
+      const i = indexAtTime(state.series, state.currentTime);
+      currentHeadingRef.current = state.series.heading[i];
+      currentVarioRef.current = state.series.vario[i];
       const viewer = viewerRef.current;
       if (viewer && !viewer.isDestroyed() && state.followPilot && pilotRef.current) {
         viewer.camera.lookAt(
@@ -175,5 +200,10 @@ export function CesiumViewer() {
     }
   }, [followPilot]);
 
-  return <div ref={containerRef} className="cesium-container" />;
+  return (
+    <div className="cesium-wrap">
+      <div ref={containerRef} className="cesium-container" />
+      {series && <VarioLegend />}
+    </div>
+  );
 }

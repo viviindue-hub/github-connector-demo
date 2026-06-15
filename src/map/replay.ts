@@ -1,16 +1,8 @@
 import { Cartesian3, Color } from 'cesium';
 import type { DerivedSeries } from '../lib/types';
+import { varioColor } from './varioScale';
 
-/** Rampa colore per il vario: blu (forte discendenza) → grigio → rosso (salita forte). */
-export function varioColor(varioMs: number): Color {
-  const v = Math.max(-3, Math.min(3, varioMs)) / 3; // -1..1
-  if (v >= 0) {
-    // grigio → rosso/arancio
-    return Color.fromHsl(0.04, 0.9, 0.62 - 0.22 * v).withAlpha(0.95);
-  }
-  // grigio → azzurro/blu
-  return Color.fromHsl(0.58, 0.85, 0.62 + 0.18 * v).withAlpha(0.95);
-}
+export { varioColor };
 
 export interface TrackGeometry {
   positions: Cartesian3[];
