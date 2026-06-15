@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  BoundingSphere,
   CallbackProperty,
   Cartesian3,
   GeometryInstance,
@@ -172,9 +173,10 @@ export function CesiumViewer() {
       currentVarioRef.current = state.series.vario[i];
       const viewer = viewerRef.current;
       if (viewer && !viewer.isDestroyed() && state.followPilot && pilotRef.current) {
+        // heading fisso (nord in alto) per evitare derive di rotazione
         viewer.camera.lookAt(
           currentPosRef.current,
-          new HeadingPitchRange(viewer.camera.heading, CesiumMath.toRadians(-25), 2500),
+          new HeadingPitchRange(0, CesiumMath.toRadians(-35), 2200),
         );
       }
     });
@@ -185,9 +187,15 @@ export function CesiumViewer() {
   useEffect(() => {
     const viewer = viewerRef.current;
     if (!viewer || viewer.isDestroyed() || !flyTo) return;
-    viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(flyTo.lon, flyTo.lat, flyTo.alt + 1800),
-      orientation: { heading: 0, pitch: CesiumMath.toRadians(-45), roll: 0 },
+    // se "segui" è attivo, il pilota è già stato portato sul punto (currentTime)
+    // e il follow lo centra: un fly-to qui litigherebbe con il lookAt.
+    if (useStore.getState().followPilot) return;
+    // rilascia un eventuale frame agganciato da un follow precedente
+    viewer.camera.lookAtTransform(Matrix4.IDENTITY);
+    // inquadra il punto CENTRANDOLO (bounding sphere) invece di metterci la camera sopra
+    const target = Cartesian3.fromDegrees(flyTo.lon, flyTo.lat, flyTo.alt);
+    viewer.camera.flyToBoundingSphere(new BoundingSphere(target, 1200), {
+      offset: new HeadingPitchRange(0, CesiumMath.toRadians(-45), 2600),
       duration: 1.5,
     });
   }, [flyTo]);
