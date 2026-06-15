@@ -1,4 +1,5 @@
 import { useStore } from '../state/store';
+import { explainDecisionShort } from '../lib/analysis/explain';
 
 const TYPE_LABELS: Record<string, string> = {
   early_exit: 'Termica lasciata presto',
@@ -28,7 +29,7 @@ export function ThermalList() {
             <span className="item-id">{th.id}</span>
             <span>
               +{Math.round(th.gain)} m · {th.avgClimb.toFixed(1)} m/s ·{' '}
-              {Math.round(th.durationS / 60)} min
+              {Math.round(th.durationS / 60)} min · raggio {Math.round(th.meanRadius)} m
             </span>
           </li>
         ))}
@@ -41,13 +42,16 @@ export function ThermalList() {
             {analysis.decisionPoints.map((dp) => (
               <li
                 key={dp.id}
-                className={`severity-${dp.severity}`}
+                className={`severity-${dp.severity} decision`}
                 onClick={() => requestFlyTo({ lat: dp.lat, lon: dp.lon, alt: dp.alt, t: dp.t })}
               >
                 <span className="item-id">{dp.id}</span>
-                <span>
-                  {TYPE_LABELS[dp.type] ?? dp.type} —{' '}
-                  {new Date(dp.t).toISOString().slice(11, 16)} UTC, {dp.alt} m
+                <span className="decision-body">
+                  <span className="decision-label">
+                    {TYPE_LABELS[dp.type] ?? dp.type} ·{' '}
+                    {new Date(dp.t).toISOString().slice(11, 16)} UTC
+                  </span>
+                  <span className="decision-why">{explainDecisionShort(dp)}</span>
                 </span>
               </li>
             ))}
