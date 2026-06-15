@@ -2,7 +2,7 @@ name: Deploy su GitHub Pages
 
 on:
   push:
-    branches: [main, claude/paragliding-app-market-5exn2i]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
