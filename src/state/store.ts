@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { Lang } from '../i18n';
 import type {
   DerivedSeries,
   FlightAnalysis,
@@ -17,6 +18,7 @@ export interface FlyToTarget {
 }
 
 interface AppState {
+  lang: Lang;
   status: 'empty' | 'loading' | 'ready' | 'error';
   errorMsg: string | null;
   track: FlightTrack | null;
@@ -48,11 +50,21 @@ interface AppState {
   setPlaying: (p: boolean) => void;
   setSpeed: (s: number) => void;
   setFollowPilot: (f: boolean) => void;
+  setLang: (l: Lang) => void;
   requestFlyTo: (target: Omit<FlyToTarget, 'seq'>) => void;
   reset: () => void;
 }
 
+function initialLang(): Lang {
+  if (typeof navigator !== 'undefined') {
+    const l = navigator.language.slice(0, 2).toLowerCase();
+    if (l === 'en' || l === 'de') return l;
+  }
+  return 'it';
+}
+
 export const useStore = create<AppState>((set) => ({
+  lang: initialLang(),
   status: 'empty',
   errorMsg: null,
   track: null,
@@ -85,6 +97,7 @@ export const useStore = create<AppState>((set) => ({
   setPlaying: (p) => set({ playing: p }),
   setSpeed: (s) => set({ speed: s }),
   setFollowPilot: (f) => set({ followPilot: f }),
+  setLang: (l) => set({ lang: l }),
   requestFlyTo: (target) =>
     set((st) => ({
       flyTo: { ...target, seq: (st.flyTo?.seq ?? 0) + 1 },

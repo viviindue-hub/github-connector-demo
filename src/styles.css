@@ -99,6 +99,44 @@ body,
   text-decoration: underline;
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lang-switch {
+  display: inline-flex;
+  border: 1px solid #39414e;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.lang-btn {
+  background: #11151c;
+  color: #9aa4b2;
+  border: none;
+  padding: 4px 9px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.lang-btn + .lang-btn {
+  border-left: 1px solid #39414e;
+}
+
+.lang-btn.active {
+  background: #e8b33c;
+  color: #1a1408;
+}
+
+.dropzone-lang {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
 .main-row {
   flex: 1;
   display: flex;

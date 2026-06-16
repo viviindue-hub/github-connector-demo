@@ -2,6 +2,7 @@ import { Fragment, useCallback, useMemo, useState } from 'react';
 import { useStore } from '../state/store';
 import { isCoachConfigured, streamDebrief } from '../api/debrief';
 import { buildLocalDebrief } from '../lib/analysis/explain';
+import { t } from '../i18n';
 
 /**
  * Pannello di debriefing. Di default mostra il debriefing generato in LOCALE
@@ -14,6 +15,7 @@ export function CoachPanel() {
   const analysis = useStore((s) => s.analysis);
   const weather = useStore((s) => s.weather);
   const summary = useStore((s) => s.summaryForAI);
+  const lang = useStore((s) => s.lang);
   const requestFlyTo = useStore((s) => s.requestFlyTo);
 
   const [aiText, setAiText] = useState('');
@@ -21,8 +23,8 @@ export function CoachPanel() {
   const [error, setError] = useState('');
 
   const localText = useMemo(
-    () => (track && analysis ? buildLocalDebrief(track, analysis, weather) : ''),
-    [track, analysis, weather],
+    () => (track && analysis ? buildLocalDebrief(track, analysis, weather, lang) : ''),
+    [track, analysis, weather, lang],
   );
 
   const startAi = useCallback(async () => {
@@ -74,11 +76,11 @@ export function CoachPanel() {
 
   return (
     <div className="panel coach-panel">
-      <h3>Debriefing</h3>
+      <h3>{t(lang, 'debriefTitle')}</h3>
 
       {!showingAi && isCoachConfigured() && (
         <button className="ai-btn" onClick={() => void startAi()}>
-          ✨ Versione AI
+          {t(lang, 'aiVersion')}
         </button>
       )}
 
@@ -88,7 +90,7 @@ export function CoachPanel() {
         {state === 'error' && <p className="error">{error}</p>}
         {state === 'done' && (
           <button className="ai-btn" onClick={() => setState('local')}>
-            ↩︎ Torna al debriefing locale
+            {t(lang, 'backToLocal')}
           </button>
         )}
       </div>
