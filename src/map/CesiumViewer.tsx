@@ -1,14 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  ArcType,
   BoundingSphere,
   CallbackProperty,
   Cartesian3,
-  Color,
   GeometryInstance,
   HeadingPitchRange,
   Math as CesiumMath,
-  PolylineArrowMaterialProperty,
   PolylineColorAppearance,
   PolylineGeometry,
   Primitive,
@@ -21,23 +18,25 @@ import { buildTrackGeometry, indexAtTime, positionAtTime } from './replay';
 import { varioColor } from './varioScale';
 import { createImageryLayer, createTerrain } from './providers';
 import { VarioLegend } from '../components/VarioLegend';
-import { destination } from '../lib/geo';
 
-/** Punto ~140 m davanti al pilota nella direzione di volo (per la freccia 3D). */
-function aheadPosition(lat: number, lon: number, alt: number, headingDeg: number): Cartesian3 {
-  const p = destination(lat, lon, headingDeg, 140);
-  return Cartesian3.fromDegrees(p.lon, p.lat, alt);
-}
+// Marker a freccia (stile aereo di carta): bianco, così la tinta del billboard
+// lo colora per vario; la punta indica la direzione di volo.
+const ARROW_SVG =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'>" +
+      "<path d='M32 4 L55 57 Q32 45 9 57 Z' fill='white' stroke='rgba(0,0,0,0.65)' stroke-width='3.5' stroke-linejoin='round'/>" +
+      '</svg>',
+  );
 
 export function CesiumViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const pilotRef = useRef<Entity | null>(null);
-  const headingRef = useRef<Entity | null>(null);
   const trackPrimitiveRef = useRef<Primitive | null>(null);
-  // posizione corrente letta dalla CallbackProperty (evita re-render React)
+  // valori correnti letti dalle CallbackProperty (evitano re-render React)
   const currentPosRef = useRef<Cartesian3>(new Cartesian3());
-  const aheadPosRef = useRef<Cartesian3>(new Cartesian3());
+  const currentHeadingRef = useRef<number>(0);
   const currentVarioRef = useRef<number>(0);
   // true quando il viewer Cesium (creazione asincrona) è pronto: serve a
   // rieseguire il setup della traccia anche se il volo era già presente al mount
@@ -85,7 +84,7 @@ export function CesiumViewer() {
     };
   }, []);
 
-  // quando arriva (o cambia) il volo: traccia colorata + entità pilota + inquadratura
+  // quando arriva (o cambia) il volo: traccia colorata + marker pilota + inquadratura
   useEffect(() => {
     const viewer = viewerRef.current;
     if (!viewer || !series) return;
@@ -100,10 +99,6 @@ export function CesiumViewer() {
       if (pilotRef.current) {
         viewer.entities.remove(pilotRef.current);
         pilotRef.current = null;
-      }
-      if (headingRef.current) {
-        viewer.entities.remove(headingRef.current);
-        headingRef.current = null;
       }
 
       const { positions, colors } = buildTrackGeometry(series);
@@ -125,36 +120,27 @@ export function CesiumViewer() {
       const t0 = useStore.getState().currentTime;
       const i0 = indexAtTime(series, t0);
       currentPosRef.current = positionAtTime(series, t0);
+      currentHeadingRef.current = series.heading[i0];
       currentVarioRef.current = series.vario[i0];
-      aheadPosRef.current = aheadPosition(
-        series.lat[i0],
-        series.lon[i0],
-        series.alt[i0],
-        series.heading[i0],
-      );
-      // pilota: punto colorato per vario (la pallina), seguibile dalla camera
+
+      // marker pilota: freccia colorata per vario, orientata alla rotta.
+      // La rotazione tiene conto dell'heading della camera, così punta nella
+      // direzione di volo reale anche mentre l'utente orbita.
       pilotRef.current = viewer.entities.add({
         position: new CallbackProperty(() => currentPosRef.current, false) as never,
-        // offset camera quando il pilota è "tracked": dietro e sopra
-        viewFrom: new Cartesian3(0, -1800, 1100) as never,
-        point: {
-          pixelSize: 15,
+        viewFrom: new Cartesian3(0, -1600, 1000) as never,
+        billboard: {
+          image: ARROW_SVG,
+          width: 34,
+          height: 34,
           color: new CallbackProperty(() => varioColor(currentVarioRef.current, 1), false) as never,
-          outlineColor: Color.BLACK,
-          outlineWidth: 2,
+          rotation: new CallbackProperty(() => {
+            const v = viewerRef.current;
+            const camHeading = v && !v.isDestroyed() ? v.camera.heading : 0;
+            return camHeading - CesiumMath.toRadians(currentHeadingRef.current);
+          }, false) as never,
+          alignedAxis: Cartesian3.ZERO,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
-        },
-      });
-      // direzione di volo: freccia in spazio-mondo (corretta da ogni angolazione)
-      headingRef.current = viewer.entities.add({
-        polyline: {
-          positions: new CallbackProperty(
-            () => [currentPosRef.current, aheadPosRef.current],
-            false,
-          ) as never,
-          width: 12,
-          arcType: ArcType.NONE,
-          material: new PolylineArrowMaterialProperty(Color.WHITE),
         },
       });
 
@@ -182,19 +168,14 @@ export function CesiumViewer() {
     };
   }, [series, viewerReady]);
 
-  // aggiornamento posizione/freccia pilota a ogni tick del clock di replay
+  // aggiornamento posizione/heading/vario del pilota a ogni tick del clock
   useEffect(() => {
     const unsub = useStore.subscribe((state) => {
       if (!state.series) return;
       const i = indexAtTime(state.series, state.currentTime);
       currentPosRef.current = positionAtTime(state.series, state.currentTime);
+      currentHeadingRef.current = state.series.heading[i];
       currentVarioRef.current = state.series.vario[i];
-      aheadPosRef.current = aheadPosition(
-        state.series.lat[i],
-        state.series.lon[i],
-        state.series.alt[i],
-        state.series.heading[i],
-      );
     });
     return unsub;
   }, []);
