@@ -7,9 +7,12 @@ import { PlaybackControls } from './components/PlaybackControls';
 import { StatsPanel } from './components/StatsPanel';
 import { ThermalList } from './components/ThermalList';
 import { CoachPanel } from './components/CoachPanel';
+import { LangSwitcher } from './components/LangSwitcher';
+import { t } from './i18n';
 
 export default function App() {
   const status = useStore((s) => s.status);
+  const lang = useStore((s) => s.lang);
   const reset = useStore((s) => s.reset);
 
   useEffect(() => startPlaybackLoop(), []);
@@ -22,9 +25,12 @@ export default function App() {
     <div className="app-layout">
       <header className="topbar">
         <span className="logo">SkyCoach</span>
-        <button className="link-btn" onClick={reset}>
-          carica un altro volo
-        </button>
+        <div className="topbar-right">
+          <LangSwitcher />
+          <button className="link-btn" onClick={reset}>
+            {t(lang, 'loadAnother')}
+          </button>
+        </div>
       </header>
       <div className="main-row">
         <div className="map-col">

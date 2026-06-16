@@ -74,10 +74,10 @@ function analysisWith(decisionPoints: DecisionPoint[]): FlightAnalysis {
   };
 }
 
-describe('explainDecisionFull', () => {
+describe('explainDecisionFull (it)', () => {
   it('early_exit cita i numeri e il marker', () => {
     const d = dp('early_exit', { thermal: 'th1', climbAtExit: 0.9, laterMaxAlt: 2100 });
-    const txt = explainDecisionFull(d);
+    const txt = explainDecisionFull(d, 'it');
     expect(txt).toContain('0.9');
     expect(txt).toContain('2100');
     expect(txt).toContain('[[dp1]]');
@@ -90,7 +90,7 @@ describe('explainDecisionFull', () => {
       avgClimb: 0.4,
       dayMedian: 1.8,
     });
-    const txt = explainDecisionFull(d);
+    const txt = explainDecisionFull(d, 'it');
     expect(txt).toContain('5');
     expect(txt).toContain('0.4');
     expect(txt).toContain('1.8');
@@ -99,7 +99,7 @@ describe('explainDecisionFull', () => {
 
   it('low_save è un merito e cita il recupero', () => {
     const d = dp('low_save', { aglAtLow: 200, regained: 450 }, { severity: 'praise' });
-    const txt = explainDecisionFull(d);
+    const txt = explainDecisionFull(d, 'it');
     expect(txt).toContain('200');
     expect(txt).toContain('450');
     expect(txt).toContain('[[dp1]]');
@@ -107,7 +107,7 @@ describe('explainDecisionFull', () => {
 
   it('sink_line spiega la discendenza', () => {
     const d = dp('sink_line', { glide: 'gl1', sustainedSinkS: 90 });
-    const txt = explainDecisionFull(d);
+    const txt = explainDecisionFull(d, 'it');
     expect(txt).toContain('90');
     expect(txt).toContain('[[dp1]]');
   });
@@ -116,43 +116,57 @@ describe('explainDecisionFull', () => {
     const ended = dp('low_crossing', { glide: 'gl2', minAgl: 300, endedFlight: 'yes' }, {
       severity: 'critical',
     });
-    expect(explainDecisionFull(ended)).toContain('è finito il volo');
+    expect(explainDecisionFull(ended, 'it')).toContain('è finito il volo');
     const notEnded = dp('low_crossing', { glide: 'gl2', minAgl: 300, endedFlight: 'no' });
-    expect(explainDecisionFull(notEnded)).not.toContain('è finito il volo');
+    expect(explainDecisionFull(notEnded, 'it')).not.toContain('è finito il volo');
   });
 });
 
 describe('explainDecisionShort', () => {
   it('produce testo non vuoto senza marker', () => {
     const d = dp('early_exit', { thermal: 'th1', climbAtExit: 0.9, laterMaxAlt: 2100 });
-    const txt = explainDecisionShort(d);
+    const txt = explainDecisionShort(d, 'it');
     expect(txt.length).toBeGreaterThan(0);
     expect(txt).not.toContain('[[');
   });
 });
 
 describe('buildFlightStory', () => {
-  it('contiene durata, distanza e il marker della migliore termica', () => {
-    const txt = buildFlightStory(track, analysisWith([]));
+  it('contiene durata, distanza e il marker della migliore termica (it)', () => {
+    const txt = buildFlightStory(track, analysisWith([]), 'it');
     expect(txt).toContain('1h 35m');
     expect(txt).toContain('62 km');
     expect(txt).toContain('[[th1]]');
   });
 });
 
-describe('buildLocalDebrief', () => {
-  it('ha le sezioni e spiega le decisioni con i marker', () => {
-    const decisions = [
-      dp('early_exit', { thermal: 'th1', climbAtExit: 0.9, laterMaxAlt: 2100 }),
-    ];
-    const md = buildLocalDebrief(track, analysisWith(decisions));
+describe('buildLocalDebrief (trilingue)', () => {
+  const decisions = [dp('early_exit', { thermal: 'th1', climbAtExit: 0.9, laterMaxAlt: 2100 })];
+
+  it('IT: ha le sezioni e spiega le decisioni con i marker', () => {
+    const md = buildLocalDebrief(track, analysisWith(decisions), undefined, 'it');
     expect(md).toContain('## Decisioni chiave');
     expect(md).toContain('## La cosa da allenare');
     expect(md).toContain('[[dp1]]');
   });
 
-  it('su volo pulito dà un consiglio positivo senza sezione decisioni', () => {
-    const md = buildLocalDebrief(track, analysisWith([]));
+  it('EN: usa le intestazioni inglesi e mantiene i marker e i numeri', () => {
+    const md = buildLocalDebrief(track, analysisWith(decisions), undefined, 'en');
+    expect(md).toContain('## Key decisions');
+    expect(md).toContain('## What to train');
+    expect(md).toContain('[[dp1]]');
+    expect(md).toContain('2100');
+  });
+
+  it('DE: usa le intestazioni tedesche e mantiene i marker', () => {
+    const md = buildLocalDebrief(track, analysisWith(decisions), undefined, 'de');
+    expect(md).toContain('## Schlüsselentscheidungen');
+    expect(md).toContain('## Woran arbeiten');
+    expect(md).toContain('[[dp1]]');
+  });
+
+  it('su volo pulito niente sezione decisioni (it)', () => {
+    const md = buildLocalDebrief(track, analysisWith([]), undefined, 'it');
     expect(md).not.toContain('## Decisioni chiave');
     expect(md).toContain('## La cosa da allenare');
   });
