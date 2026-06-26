@@ -9,8 +9,9 @@ export function PlaybackControls() {
   const speed = useStore((s) => s.speed);
   const currentTime = useStore((s) => s.currentTime);
   const followPilot = useStore((s) => s.followPilot);
+  const showWind = useStore((s) => s.showWind);
   const lang = useStore((s) => s.lang);
-  const { setPlaying, setSpeed, setTime, setFollowPilot } = useStore.getState();
+  const { setPlaying, setSpeed, setTime, setFollowPilot, setShowWind } = useStore.getState();
 
   if (!series) return null;
   const t0 = series.t[0];
@@ -55,6 +56,10 @@ export function PlaybackControls() {
           onChange={(e) => setFollowPilot(e.target.checked)}
         />
         {t(lang, 'follow')}
+      </label>
+      <label className="follow-toggle">
+        <input type="checkbox" checked={showWind} onChange={(e) => setShowWind(e.target.checked)} />
+        {t(lang, 'windToggle')}
       </label>
     </div>
   );

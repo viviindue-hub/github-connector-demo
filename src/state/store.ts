@@ -34,6 +34,8 @@ interface AppState {
   flyTo: FlyToTarget | null;
   /** true mentre l'utente vuole la camera agganciata al pilota */
   followPilot: boolean;
+  /** frecce del vento (una per termica) sulla mappa */
+  showWind: boolean;
 
   setLoading: () => void;
   setError: (msg: string) => void;
@@ -50,6 +52,7 @@ interface AppState {
   setPlaying: (p: boolean) => void;
   setSpeed: (s: number) => void;
   setFollowPilot: (f: boolean) => void;
+  setShowWind: (v: boolean) => void;
   setLang: (l: Lang) => void;
   requestFlyTo: (target: Omit<FlyToTarget, 'seq'>) => void;
   reset: () => void;
@@ -77,6 +80,7 @@ export const useStore = create<AppState>((set) => ({
   speed: 25,
   flyTo: null,
   followPilot: false,
+  showWind: true,
 
   setLoading: () => set({ status: 'loading', errorMsg: null }),
   setError: (msg) => set({ status: 'error', errorMsg: msg, playing: false }),
@@ -97,6 +101,7 @@ export const useStore = create<AppState>((set) => ({
   setPlaying: (p) => set({ playing: p }),
   setSpeed: (s) => set({ speed: s }),
   setFollowPilot: (f) => set({ followPilot: f }),
+  setShowWind: (v) => set({ showWind: v }),
   setLang: (l) => set({ lang: l }),
   requestFlyTo: (target) =>
     set((st) => ({
