@@ -6,6 +6,7 @@ import { Barogram } from './components/Barogram';
 import { PlaybackControls } from './components/PlaybackControls';
 import { StatsPanel } from './components/StatsPanel';
 import { ThermalList } from './components/ThermalList';
+import { WindProfilePanel } from './components/WindProfilePanel';
 import { CoachPanel } from './components/CoachPanel';
 import { LangSwitcher } from './components/LangSwitcher';
 import { MapResizer } from './components/MapResizer';
@@ -43,6 +44,7 @@ export default function App() {
         <aside className="sidebar">
           <StatsPanel />
           <CoachPanel />
+          <WindProfilePanel />
           <ThermalList />
         </aside>
       </div>

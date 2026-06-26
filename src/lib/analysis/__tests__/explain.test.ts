@@ -4,6 +4,7 @@ import {
   buildLocalDebrief,
   explainDecisionFull,
   explainDecisionShort,
+  windLayers,
 } from '../explain';
 import type {
   DecisionPoint,
@@ -128,6 +129,24 @@ describe('explainDecisionShort', () => {
     const txt = explainDecisionShort(d, 'it');
     expect(txt.length).toBeGreaterThan(0);
     expect(txt).not.toContain('[[');
+  });
+});
+
+describe('windLayers', () => {
+  it('converte la deriva in vento-da (+180), in km/h e ordina per quota', () => {
+    const a = { ...thermal('th1', 2), entryAlt: 1000, exitAlt: 2000, drift: { dirDeg: 90, speedMs: 5 } };
+    const b = { ...thermal('th2', 2), entryAlt: 2000, exitAlt: 3000, drift: { dirDeg: 0, speedMs: 2 } };
+    const layers = windLayers([a, b]);
+    expect(layers[0].id).toBe('th2'); // quota più alta per prima
+    expect(layers[0].alt).toBe(2500);
+    expect(layers[0].fromDeg).toBe(180);
+    expect(layers[1].fromDeg).toBe(270);
+    expect(layers[1].speedKmh).toBe(18);
+  });
+
+  it('scarta le derive trascurabili', () => {
+    const weak = { ...thermal('th1', 2), drift: { dirDeg: 10, speedMs: 0.1 } };
+    expect(windLayers([weak])).toHaveLength(0);
   });
 });
 
