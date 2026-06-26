@@ -154,6 +154,8 @@ export interface WindLayer {
   speedKmh: number;
   /** epoch ms (inizio termica) */
   t: number;
+  lat: number;
+  lon: number;
 }
 
 /**
@@ -168,9 +170,11 @@ export function windLayers(thermals: ThermalSegment[], minSpeedMs = 0.3): WindLa
       id: th.id,
       alt: Math.round((th.entryAlt + th.exitAlt) / 2),
       // drift = direzione VERSO cui spinge (sottovento); la provenienza è +180°
-      fromDeg: Math.round((th.drift.dirDeg + 180) % 360),
+      fromDeg: Math.round((th.drift.dirDeg + 180) % 360) % 360,
       speedKmh: Math.round(th.drift.speedMs * 3.6),
       t: th.startT,
+      lat: th.lat,
+      lon: th.lon,
     }))
     .sort((a, b) => b.alt - a.alt);
 }
