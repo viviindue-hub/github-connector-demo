@@ -108,40 +108,40 @@ export function explainDecisionFull(dp: DecisionPoint, lang: Lang): string {
   switch (dp.type) {
     case 'early_exit':
       return it
-        ? `Hai lasciato la termica ${d.thermal} a ${dp.alt} m mentre saliva ancora a +${num(d.climbAtExit)} m/s ${m}; nei 30 minuti dopo la quota massima è stata ${num(d.laterMaxAlt)} m. Restando ancora un po' evitavi di ripartire più in basso.`
+        ? `Hai lasciato la termica ${d.thermal} a ${dp.alt} m mentre saliva ancora a +${num(d.climbAtExit)} m/s ${m}; nei 30 minuti dopo la quota massima è stata ${num(d.laterMaxAlt)} m. Regola pratica: lascia una termica quando il rateo cala sotto la media del giorno, non mentre tira ancora — qui sei ripartito più in basso e hai dovuto rifare quota.`
         : en
-          ? `You left thermal ${d.thermal} at ${dp.alt} m while it was still climbing +${num(d.climbAtExit)} m/s ${m}; in the next 30 minutes your max altitude was ${num(d.laterMaxAlt)} m. Staying a bit longer would have spared you a lower restart.`
-          : `Du hast den Bart ${d.thermal} bei ${dp.alt} m verlassen, obwohl er noch mit +${num(d.climbAtExit)} m/s stieg ${m}; in den nächsten 30 Minuten lag deine Maximalhöhe bei ${num(d.laterMaxAlt)} m. Etwas länger zu bleiben hätte dir einen tieferen Neustart erspart.`;
+          ? `You left thermal ${d.thermal} at ${dp.alt} m while it was still climbing +${num(d.climbAtExit)} m/s ${m}; over the next 30 minutes your max altitude was ${num(d.laterMaxAlt)} m. Rule of thumb: leave a thermal when the climb drops below the day's average, not while it's still working — here you set off lower and had to re-climb.`
+          : `Du hast den Bart ${d.thermal} bei ${dp.alt} m verlassen, obwohl er noch mit +${num(d.climbAtExit)} m/s stieg ${m}; in den nächsten 30 Minuten lag deine Maximalhöhe bei ${num(d.laterMaxAlt)} m. Faustregel: verlasse einen Bart, wenn das Steigen unter den Tagesschnitt fällt, nicht solange er noch trägt — hier bist du tiefer losgeflogen und musstest wieder aufdrehen.`;
     case 'weak_thermal_persist':
       return it
-        ? `Sei rimasto ${num(d.minutes)} minuti nella termica ${d.thermal} a soli ${num(d.avgClimb)} m/s ${m}, quando la mediana della giornata era ${num(d.dayMedian)} m/s. In una giornata così conveniva mollarla e cercarne una più forte.`
+        ? `Sei rimasto ${num(d.minutes)} minuti nella termica ${d.thermal} a soli ${num(d.avgClimb)} m/s ${m}, con la mediana del giorno a ${num(d.dayMedian)} m/s. Se avevi quota e alternative, conveniva scartarla e ripartire a cercarne una più forte: insistere su una termica debole in una buona giornata è il modo più comune di perdere tempo e chilometri.`
         : en
-          ? `You stayed ${num(d.minutes)} minutes in thermal ${d.thermal} at just ${num(d.avgClimb)} m/s ${m}, while the day's median was ${num(d.dayMedian)} m/s. On a day like this it pays to leave it and look for a stronger one.`
-          : `Du bist ${num(d.minutes)} Minuten im Bart ${d.thermal} bei nur ${num(d.avgClimb)} m/s geblieben ${m}, während der Tagesmedian ${num(d.dayMedian)} m/s war. An so einem Tag lohnt es sich, ihn zu verlassen und einen stärkeren zu suchen.`;
+          ? `You stayed ${num(d.minutes)} minutes in thermal ${d.thermal} at just ${num(d.avgClimb)} m/s ${m}, with the day's median at ${num(d.dayMedian)} m/s. If you had height and options, it paid to drop it and look for a stronger core: grinding a weak thermal on a good day is the most common way to lose time and kilometres.`
+          : `Du bist ${num(d.minutes)} Minuten im Bart ${d.thermal} bei nur ${num(d.avgClimb)} m/s geblieben ${m}, bei einem Tagesmedian von ${num(d.dayMedian)} m/s. Mit Höhe und Alternativen lohnt es sich, ihn fallen zu lassen und einen stärkeren Kern zu suchen: an einem guten Tag an einem schwachen Bart zu kleben kostet am meisten Zeit und Kilometer.`;
     case 'low_save':
       return it
-        ? `Bel recupero ${m}: eri a ${num(d.aglAtLow)} m dal suolo e hai rimontato ${num(d.regained)} m. Sangue freddo e centraggio pagano.`
+        ? `Bel recupero ${m}: da ${num(d.aglAtLow)} m dal suolo hai rimontato ${num(d.regained)} m. Tienitelo come merito — ma il vero guadagno è capire cosa ti ha portato così in basso, per non rigiocartela alla cieca la prossima volta.`
         : en
-          ? `Nice save ${m}: you were ${num(d.aglAtLow)} m AGL and climbed back ${num(d.regained)} m. Cool head and good centering pay off.`
-          : `Schöner Save ${m}: du warst ${num(d.aglAtLow)} m über Grund und bist ${num(d.regained)} m zurückgestiegen. Kühler Kopf und gutes Zentrieren zahlen sich aus.`;
+          ? `Nice save ${m}: from ${num(d.aglAtLow)} m AGL you climbed back ${num(d.regained)} m. Take the credit — but the real lesson is understanding what got you that low, so you don't gamble on it next time.`
+          : `Schöner Save ${m}: aus ${num(d.aglAtLow)} m über Grund bist du ${num(d.regained)} m zurückgestiegen. Nimm das Lob mit — der eigentliche Gewinn ist zu verstehen, was dich so tief gebracht hat, um es nicht erneut aufs Spiel zu setzen.`;
     case 'sink_line':
       return it
-        ? `Hai attraversato una linea di discendenza ${m} (${num(d.sustainedSinkS)}s sotto −2 m/s). Quando l'aria scende così, spostarti di lato per uscirne in fretta limita la perdita di quota.`
+        ? `Hai attraversato una linea di discendenza ${m} (${num(d.sustainedSinkS)}s sotto −2 m/s). In aria che scende così conviene accelerare per uscirne prima e cambiare linea — spesso basta spostarsi sul lato sopravento o verso il rilievo — invece di insistere lento e dritto, che è il modo peggiore di perdere quota.`
         : en
-          ? `You crossed a sink line ${m} (${num(d.sustainedSinkS)}s below −2 m/s). When the air sinks like that, moving sideways to get out quickly limits the height loss.`
-          : `Du bist durch eine Abwindlinie geflogen ${m} (${num(d.sustainedSinkS)}s unter −2 m/s). Wenn die Luft so absinkt, begrenzt seitliches Ausweichen den Höhenverlust.`;
+          ? `You crossed a sink line ${m} (${num(d.sustainedSinkS)}s below −2 m/s). In air that's going down like this, speed up to get through it faster and change your line — often just shift to the windward side or toward the terrain — rather than pushing slow and straight, which is the worst way to bleed altitude.`
+          : `Du bist durch eine Abwindlinie geflogen ${m} (${num(d.sustainedSinkS)}s unter −2 m/s). In so absinkender Luft beschleunigen, um schneller hindurchzukommen, und die Linie wechseln — oft reicht die Luv-Seite oder Richtung Hang — statt langsam und stur geradeaus, was am meisten Höhe kostet.`;
     case 'low_crossing':
       if (d.endedFlight === 'yes')
         return it
-          ? `Attraversamento basso a ${num(d.minAgl)} m dal suolo ${m}: qui è finito il volo. Con più margine avresti avuto più opzioni per riagganciare.`
+          ? `Attraversamento basso a ${num(d.minAgl)} m dal suolo ${m}: qui è finito il volo. Negli attraversamenti parti più alto e tieni sempre un atterrabile e una via di fuga: il margine di quota è ciò che ti dà altre chance per riagganciare.`
           : en
-            ? `Low crossing at ${num(d.minAgl)} m AGL ${m}: the flight ended here. With more margin you'd have had more options to climb again.`
-            : `Tiefe Querung bei ${num(d.minAgl)} m über Grund ${m}: hier endete der Flug. Mit mehr Reserve hättest du mehr Möglichkeiten zum Wiederaufdrehen gehabt.`;
+            ? `Low crossing at ${num(d.minAgl)} m AGL ${m}: the flight ended here. On crossings start higher and always keep a landing field and an escape line: height margin is what buys you more chances to climb again.`
+            : `Tiefe Querung bei ${num(d.minAgl)} m über Grund ${m}: hier endete der Flug. Bei Querungen höher einsteigen und immer ein Landefeld plus Fluchtweg behalten: die Höhenreserve verschafft dir weitere Chancen zum Wiederaufdrehen.`;
       return it
-        ? `Sei sceso a soli ${num(d.minAgl)} m dal suolo ${m}. Più margine in attraversamento dà più scelte se non trovi la salita.`
+        ? `Sei sceso a soli ${num(d.minAgl)} m dal suolo ${m}. Più margine in attraversamento significa più opzioni se non agganci: meglio deviare verso una linea più sicura che tirare dritto e basso.`
         : en
-          ? `You got down to just ${num(d.minAgl)} m AGL ${m}. More margin on crossings gives you more options if you don't find lift.`
-          : `Du bist auf nur ${num(d.minAgl)} m über Grund gesunken ${m}. Mehr Reserve bei Querungen gibt dir mehr Optionen, falls du kein Steigen findest.`;
+          ? `You got down to just ${num(d.minAgl)} m AGL ${m}. More margin on a crossing means more options if you don't connect: better to divert to a safer line than to push on straight and low.`
+          : `Du bist auf nur ${num(d.minAgl)} m über Grund gesunken ${m}. Mehr Reserve bei einer Querung bedeutet mehr Optionen, falls du nicht ankoppelst: lieber auf eine sicherere Linie ausweichen als tief und stur geradeaus.`;
   }
 }
 
@@ -224,7 +224,9 @@ export function buildFlightStory(track: FlightTrack, analysis: FlightAnalysis, l
   const wind = meanWind(windProfile.length > 0 ? windProfile : thermals.map((t) => t.drift));
   if (wind && wind.speedMs >= 0.5) {
     const kmh = Math.round(wind.speedMs * 3.6);
-    const dir = compass(wind.dirDeg, lang);
+    // la deriva indica la direzione VERSO cui va il vento (sottovento):
+    // la provenienza meteorologica ("vento da") è opposta, +180°.
+    const dir = compass((wind.dirDeg + 180) % 360, lang);
     parts.push(
       it
         ? `Vento stimato dalla deriva delle termiche: ~${kmh} km/h da ${dir}.`
@@ -282,7 +284,7 @@ const FOCUS_TIPS: Record<Lang, Record<string, string>> = {
     weak_thermal_persist:
       "Allena la disciplina di mollare le termiche deboli: se dopo 1-2 giri non sale come la media del giorno, vai a cercarne un'altra.",
     sink_line:
-      "Quando entri in discendenza prolungata, cambia rotta subito per uscire dalla massa d'aria che scende invece di insistere dritto.",
+      "In discendenza prolungata accelera per attraversarla prima e cambia linea (lato sopravento o verso il rilievo): non insistere lento e dritto nell'aria che scende.",
     low_crossing:
       'Pianifica gli attraversamenti con più margine di quota: parti più alto e tieni sempre un atterrabile a portata.',
   },
@@ -293,7 +295,7 @@ const FOCUS_TIPS: Record<Lang, Record<string, string>> = {
     weak_thermal_persist:
       "Train the discipline to drop weak thermals: if after 1-2 turns it isn't climbing like the day's average, go find another.",
     sink_line:
-      'When you hit sustained sink, change course immediately to get out of the sinking air instead of pushing straight on.',
+      'In sustained sink, speed up to cross it sooner and change your line (windward side or toward terrain): never push slow and straight through sinking air.',
     low_crossing:
       'Plan crossings with more height margin: start higher and always keep a landing field within reach.',
   },
@@ -304,7 +306,7 @@ const FOCUS_TIPS: Record<Lang, Record<string, string>> = {
     weak_thermal_persist:
       'Übe die Disziplin, schwache Bärte loszulassen: steigt er nach 1-2 Kreisen nicht wie der Tagesschnitt, such einen anderen.',
     sink_line:
-      'Bei anhaltendem Sinken sofort den Kurs ändern, um aus der absinkenden Luft zu kommen, statt stur geradeaus zu fliegen.',
+      'Bei anhaltendem Sinken beschleunigen, um schneller durchzukommen, und die Linie wechseln (Luv-Seite oder Richtung Hang): nie langsam und stur durch absinkende Luft.',
     low_crossing:
       'Plane Querungen mit mehr Höhenreserve: starte höher und halte immer ein Landefeld in Reichweite.',
   },

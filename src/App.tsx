@@ -8,6 +8,7 @@ import { StatsPanel } from './components/StatsPanel';
 import { ThermalList } from './components/ThermalList';
 import { CoachPanel } from './components/CoachPanel';
 import { LangSwitcher } from './components/LangSwitcher';
+import { MapResizer } from './components/MapResizer';
 import { t } from './i18n';
 
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
           <CesiumViewer />
           <PlaybackControls />
           <Barogram />
+          <MapResizer />
         </div>
         <aside className="sidebar">
           <StatsPanel />
