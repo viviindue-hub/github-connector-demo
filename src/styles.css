@@ -446,6 +446,30 @@ body,
   }
 }
 
+/* ---------- maniglia ridimensiona mappa ---------- */
+.map-resizer {
+  display: none; /* solo su mobile, dove la mappa sta sopra le insight */
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  background: #161b23;
+  border-top: 1px solid #262c36;
+  cursor: row-resize;
+  touch-action: none;
+  flex: none;
+}
+
+.map-resizer-grip {
+  width: 46px;
+  height: 5px;
+  border-radius: 3px;
+  background: #4a5360;
+}
+
+.map-resizer:hover .map-resizer-grip {
+  background: #e8b33c;
+}
+
 /* ---------- mobile ---------- */
 @media (max-width: 860px) {
   .main-row {
@@ -455,7 +479,11 @@ body,
 
   .map-col {
     flex: none;
-    height: 70vh;
+    height: var(--map-h, 65vh);
+  }
+
+  .map-resizer {
+    display: flex;
   }
 
   .sidebar {
