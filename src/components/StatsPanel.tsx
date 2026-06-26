@@ -1,14 +1,19 @@
 import { useStore } from '../state/store';
 import { t as tr } from '../i18n';
+import { avgGroundSpeedKmh, estimateAvgAirspeedKmh } from '../lib/analysis/airspeed';
 
 export function StatsPanel() {
   const track = useStore((s) => s.track);
   const analysis = useStore((s) => s.analysis);
+  const series = useStore((s) => s.series);
   const weather = useStore((s) => s.weather);
   const lang = useStore((s) => s.lang);
 
-  if (!track || !analysis) return null;
+  if (!track || !analysis || !series) return null;
   const tot = analysis.totals;
+
+  const groundKmh = avgGroundSpeedKmh(series);
+  const airKmh = estimateAvgAirspeedKmh(series, analysis.thermals);
 
   const stats: Array<[string, string]> = [
     [tr(lang, 'statDuration'), `${Math.floor(tot.durationMin / 60)}h ${tot.durationMin % 60}m`],
@@ -19,6 +24,12 @@ export function StatsPanel() {
     [tr(lang, 'statInThermal'), `${tot.pctClimb}%`],
     [tr(lang, 'statInGlide'), `${tot.pctGlide}%`],
     [tr(lang, 'statWasted'), `${tot.minutesWasted} min`],
+    ...(groundKmh !== null
+      ? ([[tr(lang, 'statGroundSpeed'), `${Math.round(groundKmh)} km/h`]] as Array<[string, string]>)
+      : []),
+    ...(airKmh !== null
+      ? ([[tr(lang, 'statAirSpeed'), `${Math.round(airKmh)} km/h`]] as Array<[string, string]>)
+      : []),
   ];
 
   return (
