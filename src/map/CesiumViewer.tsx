@@ -3,6 +3,7 @@ import {
   BoundingSphere,
   CallbackProperty,
   Cartesian3,
+  Color,
   GeometryInstance,
   HeadingPitchRange,
   Math as CesiumMath,
@@ -16,6 +17,7 @@ import {
 import { useStore } from '../state/store';
 import { buildTrackGeometry, indexAtTime, positionAtTime } from './replay';
 import { varioColor } from './varioScale';
+import { windLayers } from '../lib/analysis/explain';
 import { createImageryLayer, createTerrain } from './providers';
 import { VarioLegend } from '../components/VarioLegend';
 
@@ -29,10 +31,21 @@ const ARROW_SVG =
       '</svg>',
   );
 
+// Freccia vento: sottile, soffusa. Tinta cyan tenue dal billboard.color.
+const WIND_ARROW_SVG =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'>" +
+      "<path d='M32 6 L45 32 L35 32 L35 58 L29 58 L29 32 L19 32 Z' fill='white' stroke='rgba(0,40,60,0.5)' stroke-width='2' stroke-linejoin='round'/>" +
+      '</svg>',
+  );
+const WIND_COLOR = new Color(0.62, 0.9, 1.0, 0.72);
+
 export function CesiumViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const pilotRef = useRef<Entity | null>(null);
+  const windArrowsRef = useRef<Entity[]>([]);
   const trackPrimitiveRef = useRef<Primitive | null>(null);
   // valori correnti letti dalle CallbackProperty (evitano re-render React)
   const currentPosRef = useRef<Cartesian3>(new Cartesian3());
@@ -43,8 +56,10 @@ export function CesiumViewer() {
   const [viewerReady, setViewerReady] = useState(false);
 
   const series = useStore((s) => s.series);
+  const analysis = useStore((s) => s.analysis);
   const flyTo = useStore((s) => s.flyTo);
   const followPilot = useStore((s) => s.followPilot);
+  const showWind = useStore((s) => s.showWind);
 
   // creazione viewer (una volta)
   useEffect(() => {
@@ -202,6 +217,39 @@ export function CesiumViewer() {
       duration: 1.5,
     });
   }, [flyTo]);
+
+  // frecce del vento, una per termica (dove il vento è davvero MISURATO dalla
+  // deriva): delicate, scalate per intensità, orientate in 3D. Attivabili.
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+    for (const e of windArrowsRef.current) viewer.entities.remove(e);
+    windArrowsRef.current = [];
+    if (!analysis || !showWind) return;
+
+    for (const w of windLayers(analysis.thermals)) {
+      const downwind = (w.fromDeg + 180) % 360; // dove spinge il vento
+      const scale = Math.min(1.5, 0.55 + w.speedKmh / 35);
+      const ent = viewer.entities.add({
+        position: Cartesian3.fromDegrees(w.lon, w.lat, w.alt),
+        billboard: {
+          image: WIND_ARROW_SVG,
+          width: 30,
+          height: 30,
+          scale,
+          color: WIND_COLOR,
+          rotation: new CallbackProperty(() => {
+            const v = viewerRef.current;
+            const camHeading = v && !v.isDestroyed() ? v.camera.heading : 0;
+            return camHeading - CesiumMath.toRadians(downwind);
+          }, false) as never,
+          alignedAxis: Cartesian3.ZERO,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      });
+      windArrowsRef.current.push(ent);
+    }
+  }, [analysis, viewerReady, showWind]);
 
   return (
     <div className="cesium-wrap">
