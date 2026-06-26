@@ -365,6 +365,38 @@ body,
   color: #69db7c;
 }
 
+/* ---------- vento per quota ---------- */
+.wind-note {
+  font-size: 0.75rem;
+  margin: 0 0 8px;
+}
+
+.wind-list li {
+  gap: 6px;
+}
+
+.wind-alt {
+  min-width: 56px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #c7cdd6;
+}
+
+.wind-arrow {
+  display: inline-block;
+  color: #e8b33c;
+  font-weight: 700;
+}
+
+.wind-val {
+  flex: 1;
+}
+
+.wind-time {
+  color: #9aa4b2;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- decisioni ---------- */
 .item-list li.decision {
   align-items: flex-start;

@@ -145,6 +145,36 @@ export function explainDecisionFull(dp: DecisionPoint, lang: Lang): string {
   }
 }
 
+export interface WindLayer {
+  id: string;
+  /** quota media della termica (m) */
+  alt: number;
+  /** provenienza meteorologica del vento (°, "da") */
+  fromDeg: number;
+  speedKmh: number;
+  /** epoch ms (inizio termica) */
+  t: number;
+}
+
+/**
+ * Profilo del vento per quota, MISURATO dalla deriva reale delle termiche del
+ * volo: ogni termica dà il vento alla sua quota e alla sua ora. È il dato che le
+ * previsioni non danno per strati. Ordinato dalla quota più alta alla più bassa.
+ */
+export function windLayers(thermals: ThermalSegment[], minSpeedMs = 0.3): WindLayer[] {
+  return thermals
+    .filter((th) => th.drift.speedMs >= minSpeedMs)
+    .map((th) => ({
+      id: th.id,
+      alt: Math.round((th.entryAlt + th.exitAlt) / 2),
+      // drift = direzione VERSO cui spinge (sottovento); la provenienza è +180°
+      fromDeg: Math.round((th.drift.dirDeg + 180) % 360),
+      speedKmh: Math.round(th.drift.speedMs * 3.6),
+      t: th.startT,
+    }))
+    .sort((a, b) => b.alt - a.alt);
+}
+
 function bestThermal(thermals: ThermalSegment[]): ThermalSegment | null {
   if (thermals.length === 0) return null;
   return thermals.reduce((a, b) => (b.best30s > a.best30s ? b : a));
