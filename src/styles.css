@@ -397,6 +397,18 @@ body,
   font-variant-numeric: tabular-nums;
 }
 
+.reg-wind-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.reg-wind-count {
+  font-size: 0.75rem;
+  margin: 0 0 6px;
+}
+
 /* ---------- decisioni ---------- */
 .item-list li.decision {
   align-items: flex-start;
