@@ -80,13 +80,24 @@ export function Barogram() {
     return unsub;
   }, []);
 
-  if (!series) return null;
+  // click ovunque nel grafico → sposta il replay a quell'istante (non solo
+  // beccando la linea): converte il pixel cliccato in tempo dell'asse x.
+  useEffect(() => {
+    const chart = chartRef.current?.getEchartsInstance();
+    if (!chart) return;
+    const zr = chart.getZr();
+    const handler = (e: { offsetX: number; offsetY: number }) => {
+      const pt: [number, number] = [e.offsetX, e.offsetY];
+      if (!chart.containPixel('grid', pt)) return;
+      const coord = chart.convertFromPixel({ gridIndex: 0 }, pt) as number[];
+      const tVal = Array.isArray(coord) ? coord[0] : coord;
+      if (typeof tVal === 'number' && !Number.isNaN(tVal)) setTime(tVal);
+    };
+    zr.on('click', handler);
+    return () => zr.off('click', handler);
+  }, [series, setTime]);
 
-  const onEvents = {
-    click: (params: { value?: [number, number] }) => {
-      if (params.value) setTime(params.value[0]);
-    },
-  };
+  if (!series) return null;
 
   return (
     <div className="barogram">
@@ -94,7 +105,6 @@ export function Barogram() {
         ref={chartRef}
         option={option}
         style={{ height: '100%', width: '100%' }}
-        onEvents={onEvents}
         notMerge={false}
       />
     </div>
