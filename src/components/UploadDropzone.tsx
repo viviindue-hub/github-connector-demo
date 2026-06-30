@@ -81,6 +81,7 @@ export function UploadDropzone() {
           <LangSwitcher />
         </div>
         <h1>SkyCoach</h1>
+        <p className="hello-name">👋 Johannes</p>
         <p>{t(lang, 'tagline')}</p>
         <p className="muted">{t(lang, 'dropHint')}</p>
         <label className="file-btn">
