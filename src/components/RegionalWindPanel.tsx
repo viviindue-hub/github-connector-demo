@@ -1,87 +1,69 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useStore } from '../state/store';
-import { windLayers, compass } from '../lib/analysis/explain';
-import {
-  aggregateWindByBand,
-  samplesNear,
-  loadSamples,
-  addFlight,
-  clearSamples,
-  flightCount,
-  type WindSample,
-} from '../lib/analysis/regionalWind';
+import { compass } from '../lib/analysis/explain';
+import { aggregateWindByBand, type WindBand, type WindSample } from '../lib/analysis/regionalWind';
+import { fetchWindSamplesNear, isWindDbConfigured } from '../api/windDb';
 import { t } from '../i18n';
 
 /**
- * Vento di ZONA per quota: aggrega i campioni di vento (dalle termiche) dei
- * voli aggiunti vicino a questo decollo. È il prototipo della versione
- * aggregata: lo stesso aggregatore verrà alimentato dal feed live (SkyLines)
- * via backend, al posto dei voli caricati a mano.
+ * Vento di ZONA per quota: aggrega i campioni di vento ANONIMI condivisi da
+ * tutti i voli (DB) entro ~40 km dal decollo. Il contributo avviene
+ * automaticamente all'upload (con la spunta di consenso): qui si legge soltanto.
  */
 export function RegionalWindPanel() {
-  const analysis = useStore((s) => s.analysis);
-  const track = useStore((s) => s.track);
   const series = useStore((s) => s.series);
   const lang = useStore((s) => s.lang);
-  const [version, setVersion] = useState(0);
+  const [bands, setBands] = useState<WindBand[]>([]);
+  const [count, setCount] = useState(0);
+  const [status, setStatus] = useState<'loading' | 'done' | 'error'>('loading');
 
-  const currentSamples: WindSample[] = useMemo(
-    () =>
-      analysis
-        ? windLayers(analysis.thermals).map((w) => ({
-            alt: w.alt,
-            fromDeg: w.fromDeg,
-            speedKmh: w.speedKmh,
-            t: w.t,
-            lat: w.lat,
-            lon: w.lon,
-          }))
-        : [],
-    [analysis],
-  );
+  const lat0 = series?.lat[0];
+  const lon0 = series?.lon[0];
 
-  const lat0 = series?.lat[0] ?? 0;
-  const lon0 = series?.lon[0] ?? 0;
+  useEffect(() => {
+    if (lat0 === undefined || lon0 === undefined || !isWindDbConfigured()) {
+      setStatus('done');
+      setBands([]);
+      return;
+    }
+    let cancelled = false;
+    setStatus('loading');
+    fetchWindSamplesNear(lat0, lon0, 40)
+      .then((rows) => {
+        if (cancelled) return;
+        const samples: WindSample[] = rows.map((r) => ({
+          alt: r.alt,
+          fromDeg: r.from_deg,
+          speedKmh: r.speed_kmh,
+          t: 0,
+          lat: r.lat,
+          lon: r.lon,
+        }));
+        setCount(samples.length);
+        setBands(aggregateWindByBand(samples));
+        setStatus('done');
+      })
+      .catch(() => !cancelled && setStatus('error'));
+    return () => {
+      cancelled = true;
+    };
+  }, [lat0, lon0]);
 
-  const { bands, flights } = useMemo(() => {
-    const near = samplesNear(loadSamples(), lat0, lon0, 40);
-    return { bands: aggregateWindByBand(near), flights: flightCount() };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [version, lat0, lon0]);
-
-  if (!analysis || !track || !series) return null;
-
-  const flightKey = `${track.date}@${lat0.toFixed(3)},${lon0.toFixed(3)}`;
-
-  const onAdd = () => {
-    addFlight(flightKey, currentSamples);
-    setVersion((v) => v + 1);
-  };
-  const onClear = () => {
-    clearSamples();
-    setVersion((v) => v + 1);
-  };
+  if (!series) return null;
 
   return (
     <div className="panel">
       <h3>{t(lang, 'regWindTitle')}</h3>
       <p className="muted wind-note">{t(lang, 'regWindNote')}</p>
-      <div className="reg-wind-actions">
-        <button className="ai-btn" onClick={onAdd} disabled={currentSamples.length === 0}>
-          {t(lang, 'regWindAdd')}
-        </button>
-        {flights > 0 && (
-          <button className="link-btn" onClick={onClear}>
-            {t(lang, 'regWindClear')}
-          </button>
-        )}
-      </div>
-      {bands.length === 0 ? (
+      {status === 'loading' && <p className="muted">{t(lang, 'dayLoading')}</p>}
+      {status === 'error' && <p className="error">{t(lang, 'dayError')}</p>}
+      {status === 'done' && bands.length === 0 && (
         <p className="muted">{t(lang, 'regWindEmpty')}</p>
-      ) : (
+      )}
+      {status === 'done' && bands.length > 0 && (
         <>
           <p className="muted reg-wind-count">
-            {flights} {t(lang, 'regWindFlights')}
+            {count} {t(lang, 'regWindSamples')}
           </p>
           <ul className="item-list wind-list">
             {bands.map((b) => (
