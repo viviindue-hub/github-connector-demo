@@ -460,6 +460,28 @@ body,
   margin: 0 0 6px;
 }
 
+.dev-details {
+  margin-top: 10px;
+  font-size: 0.72rem;
+  color: #9aa4b2;
+}
+
+.dev-details summary {
+  cursor: pointer;
+}
+
+.dev-pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: #11151c;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 0.68rem;
+  color: #c7cdd6;
+  max-height: 200px;
+  overflow: auto;
+}
+
 /* ---------- decisioni ---------- */
 .item-list li.decision {
   align-items: flex-start;
