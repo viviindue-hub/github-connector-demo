@@ -40,9 +40,9 @@ export default function App() {
       <div className="main-row">
         <div className="map-col">
           <CesiumViewer />
+          <MapResizer />
           <PlaybackControls />
           <Barogram />
-          <MapResizer />
         </div>
         <aside className="sidebar">
           <StatsPanel />

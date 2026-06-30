@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react';
 
 const KEY = 'skycoach-map-h';
-const MIN_VH = 32;
-const MAX_VH = 85;
+const MIN_VH = 18;
+const MAX_VH = 80;
 
 /**
- * Maniglia per ridimensionare l'altezza dello schermo del volo (mappa 3D),
- * così su mobile si può rimpicciolire per leggere meglio le insight sotto.
- * Imposta la variabile CSS --map-h (usata da .map-col nel layout mobile).
+ * Maniglia (subito sotto la mappa) per ridimensionarne l'altezza su mobile.
+ * Imposta --map-h, usata da .cesium-wrap: ridimensiona SOLO la mappa, così
+ * barogramma e maniglia restano sempre visibili (la mappa si recupera sempre).
+ * Doppio tap = reset all'altezza predefinita.
  */
 export function MapResizer() {
   const ref = useRef<HTMLDivElement>(null);
@@ -40,12 +41,18 @@ export function MapResizer() {
     window.addEventListener('pointerup', up);
   };
 
+  const reset = () => {
+    document.documentElement.style.removeProperty('--map-h');
+    localStorage.removeItem(KEY);
+  };
+
   return (
     <div
       ref={ref}
       className="map-resizer"
       onPointerDown={onPointerDown}
-      title="Trascina per ridimensionare la mappa"
+      onDoubleClick={reset}
+      title="Trascina per ridimensionare · doppio tap per reset"
       role="separator"
       aria-orientation="horizontal"
     >

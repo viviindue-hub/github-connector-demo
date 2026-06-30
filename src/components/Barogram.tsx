@@ -88,11 +88,14 @@ export function Barogram() {
         on: (ev: string, cb: (e: { offsetX: number; offsetY: number }) => void) => void;
       };
       convertFromPixel: (finder: unknown, value: number[]) => number | number[];
+      setOption: (opt: unknown) => void;
     };
     const zr = chart.getZr();
     let dragging = false;
 
-    // sposta il cursore (linea rossa) all'istante sotto il puntatore
+    // sposta il cursore (linea rossa) all'istante sotto il puntatore.
+    // Aggiorna la markLine DIRETTAMENTE (feedback immediato e fluido) e poi lo
+    // stato condiviso (mappa, ecc.).
     const seek = (e: { offsetX: number; offsetY: number }) => {
       const coord = chart.convertFromPixel({ gridIndex: 0 }, [e.offsetX, e.offsetY]);
       const tVal = Array.isArray(coord) ? coord[0] : coord;
@@ -100,7 +103,9 @@ export function Barogram() {
       if (!s || typeof tVal !== 'number' || Number.isNaN(tVal)) return;
       const t0 = s.t[0];
       const t1 = s.t[s.t.length - 1];
-      setTime(Math.max(t0, Math.min(t1, tVal)));
+      const clamped = Math.max(t0, Math.min(t1, tVal));
+      chart.setOption({ series: [{ markLine: { data: [{ xAxis: clamped }] } }] });
+      setTime(clamped);
     };
 
     // scrubber: premi e trascina (mouse o dito; zrender normalizza il touch)
