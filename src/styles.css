@@ -10,6 +10,7 @@ body,
   background: #11151c;
   color: #e6e9ee;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden; /* niente pan orizzontale della pagina */
 }
 
 /* ---------- dropzone ---------- */
@@ -228,16 +229,24 @@ body,
   height: 180px;
   background: #161b23;
   border-top: 1px solid #262c36;
+  /* il drag orizzontale fa scrubbing (non sposta la pagina); il drag
+     verticale scorre la pagina normalmente */
+  touch-action: pan-y;
 }
 
 /* ---------- playback ---------- */
 .playback {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap; /* su schermi stretti i controlli vanno a capo, niente overflow */
+  gap: 8px 10px;
   padding: 6px 12px;
   background: #161b23;
   border-top: 1px solid #262c36;
+}
+
+.playback input[type='range'] {
+  min-width: 90px;
 }
 
 .play-btn {
