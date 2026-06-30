@@ -22,13 +22,8 @@ export function Barogram() {
     return {
       animation: false,
       grid: { left: 56, right: 16, top: 12, bottom: 28 },
-      tooltip: {
-        trigger: 'axis',
-        formatter: (params: Array<{ value: [number, number] }>) => {
-          const [t, alt] = params[0].value;
-          return `${new Date(t).toISOString().slice(11, 19)} UTC — ${Math.round(alt)} m`;
-        },
-      },
+      // niente tooltip/axisPointer: l'unico indicatore verticale è la markLine
+      // rossa del replay; così trascinando sul grafico non si muove nulla.
       xAxis: {
         type: 'time',
         axisLabel: {
