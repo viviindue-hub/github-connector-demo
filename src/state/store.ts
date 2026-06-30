@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Lang } from '../i18n';
+import type { FlightType } from '../lib/analysis/flightType';
 import type {
   DerivedSeries,
   FlightAnalysis,
@@ -40,6 +41,8 @@ interface AppState {
   colorMode: 'vario' | 'speed';
   /** condividere campioni di vento anonimi col profilo di zona */
   shareAnon: boolean;
+  /** override del tipo di volo ('auto' = riconosciuto dai dati) */
+  flightTypeOverride: 'auto' | FlightType;
 
   setLoading: () => void;
   setError: (msg: string) => void;
@@ -59,6 +62,7 @@ interface AppState {
   setShowWind: (v: boolean) => void;
   setColorMode: (m: 'vario' | 'speed') => void;
   setShareAnon: (v: boolean) => void;
+  setFlightTypeOverride: (v: 'auto' | FlightType) => void;
   setLang: (l: Lang) => void;
   requestFlyTo: (target: Omit<FlyToTarget, 'seq'>) => void;
   reset: () => void;
@@ -89,6 +93,7 @@ export const useStore = create<AppState>((set) => ({
   showWind: true,
   colorMode: 'vario',
   shareAnon: false,
+  flightTypeOverride: 'auto',
 
   setLoading: () => set({ status: 'loading', errorMsg: null }),
   setError: (msg) => set({ status: 'error', errorMsg: msg, playing: false }),
@@ -112,6 +117,7 @@ export const useStore = create<AppState>((set) => ({
   setShowWind: (v) => set({ showWind: v }),
   setColorMode: (m) => set({ colorMode: m }),
   setShareAnon: (v) => set({ shareAnon: v }),
+  setFlightTypeOverride: (v) => set({ flightTypeOverride: v }),
   setLang: (l) => set({ lang: l }),
   requestFlyTo: (target) =>
     set((st) => ({
@@ -131,6 +137,7 @@ export const useStore = create<AppState>((set) => ({
       currentTime: 0,
       playing: false,
       flyTo: null,
+      flightTypeOverride: 'auto',
     }),
 }));
 

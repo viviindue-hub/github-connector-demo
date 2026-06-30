@@ -509,6 +509,34 @@ body,
   margin: 0 0 6px;
 }
 
+.flight-type .ft-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.ft-label {
+  color: #9aa4b2;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ft-detected {
+  color: #e8b33c;
+  font-weight: 700;
+}
+
+.ft-switch {
+  width: 100%;
+}
+
+.ft-switch .lang-btn {
+  flex: 1;
+  padding: 5px 4px;
+}
+
 .dev-details {
   margin-top: 10px;
   font-size: 0.72rem;
