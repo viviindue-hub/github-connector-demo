@@ -8,6 +8,7 @@ export function Barogram() {
   const series = useStore((s) => s.series);
   const analysis = useStore((s) => s.analysis);
   const setTime = useStore((s) => s.setTime);
+  const setPlaying = useStore((s) => s.setPlaying);
   const chartRef = useRef<EChartsReactCore>(null);
 
   const option = useMemo(() => {
@@ -83,10 +84,16 @@ export function Barogram() {
   // funziona anche cliccando in basso, fuori dall'area dati).
   const onChartReady = (instance: unknown) => {
     const chart = instance as {
-      getZr: () => { on: (ev: string, cb: (e: { offsetX: number; offsetY: number }) => void) => void };
+      getZr: () => {
+        on: (ev: string, cb: (e: { offsetX: number; offsetY: number }) => void) => void;
+      };
       convertFromPixel: (finder: unknown, value: number[]) => number | number[];
     };
-    chart.getZr().on('click', (e) => {
+    const zr = chart.getZr();
+    let dragging = false;
+
+    // sposta il cursore (linea rossa) all'istante sotto il puntatore
+    const seek = (e: { offsetX: number; offsetY: number }) => {
       const coord = chart.convertFromPixel({ gridIndex: 0 }, [e.offsetX, e.offsetY]);
       const tVal = Array.isArray(coord) ? coord[0] : coord;
       const s = useStore.getState().series;
@@ -94,6 +101,22 @@ export function Barogram() {
       const t0 = s.t[0];
       const t1 = s.t[s.t.length - 1];
       setTime(Math.max(t0, Math.min(t1, tVal)));
+    };
+
+    // scrubber: premi e trascina (mouse o dito; zrender normalizza il touch)
+    zr.on('mousedown', (e) => {
+      dragging = true;
+      setPlaying(false);
+      seek(e);
+    });
+    zr.on('mousemove', (e) => {
+      if (dragging) seek(e);
+    });
+    zr.on('mouseup', () => {
+      dragging = false;
+    });
+    zr.on('globalout', () => {
+      dragging = false;
     });
   };
 
