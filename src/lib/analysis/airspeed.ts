@@ -44,6 +44,16 @@ function windAt(layers: WindVec[], alt: number): { e: number; n: number } {
   return { e: last.e, n: last.n };
 }
 
+/** Modello di vento per quota (riusabile): vettore vento (m/s) a una quota. */
+export interface WindModel {
+  ok: boolean;
+  at(alt: number): { e: number; n: number };
+}
+export function buildWindModel(thermals: ThermalSegment[]): WindModel {
+  const layers = windByAltitude(thermals);
+  return { ok: layers.length > 0, at: (alt: number) => windAt(layers, alt) };
+}
+
 /** Velocità al suolo media (km/h). */
 export function avgGroundSpeedKmh(series: DerivedSeries): number | null {
   const n = series.t.length;
