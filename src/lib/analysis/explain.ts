@@ -107,41 +107,43 @@ export function explainDecisionFull(dp: DecisionPoint, lang: Lang): string {
   const en = lang === 'en';
   switch (dp.type) {
     case 'early_exit':
+      // OGGETTIVO: solo i fatti + nota neutra. Lasciare con quota sufficiente
+      // per la transizione è una scelta legittima — niente "dovevi girare".
       return it
-        ? `Hai lasciato la termica ${d.thermal} a ${dp.alt} m mentre saliva ancora a +${num(d.climbAtExit)} m/s ${m}; nei 30 minuti dopo la quota massima è stata ${num(d.laterMaxAlt)} m. Regola pratica: lascia una termica quando il rateo cala sotto la media del giorno, non mentre tira ancora — qui sei ripartito più in basso e hai dovuto rifare quota.`
+        ? `Uscita da ${d.thermal} a ${dp.alt} m con ancora +${num(d.climbAtExit)} m/s ${m}; nei 30 minuti successivi la quota massima è stata ${num(d.laterMaxAlt)} m. Se avevi la quota per la linea successiva, è una scelta legittima; da rivedere solo se sei poi ripartito più in basso cercando salita.`
         : en
-          ? `You left thermal ${d.thermal} at ${dp.alt} m while it was still climbing +${num(d.climbAtExit)} m/s ${m}; over the next 30 minutes your max altitude was ${num(d.laterMaxAlt)} m. Rule of thumb: leave a thermal when the climb drops below the day's average, not while it's still working — here you set off lower and had to re-climb.`
-          : `Du hast den Bart ${d.thermal} bei ${dp.alt} m verlassen, obwohl er noch mit +${num(d.climbAtExit)} m/s stieg ${m}; in den nächsten 30 Minuten lag deine Maximalhöhe bei ${num(d.laterMaxAlt)} m. Faustregel: verlasse einen Bart, wenn das Steigen unter den Tagesschnitt fällt, nicht solange er noch trägt — hier bist du tiefer losgeflogen und musstest wieder aufdrehen.`;
+          ? `Left ${d.thermal} at ${dp.alt} m with +${num(d.climbAtExit)} m/s still showing ${m}; over the next 30 minutes your max altitude was ${num(d.laterMaxAlt)} m. If you had the height for the next leg this is a fair call; worth a look only if you then set off lower hunting for lift.`
+          : `${d.thermal} bei ${dp.alt} m mit noch +${num(d.climbAtExit)} m/s verlassen ${m}; in den nächsten 30 Minuten lag die Maximalhöhe bei ${num(d.laterMaxAlt)} m. Hattest du die Höhe für den nächsten Schenkel, ist das legitim; nur prüfenswert, falls du danach tiefer auf Suche gegangen bist.`;
     case 'weak_thermal_persist':
       return it
-        ? `Sei rimasto ${num(d.minutes)} minuti nella termica ${d.thermal} a soli ${num(d.avgClimb)} m/s ${m}, con la mediana del giorno a ${num(d.dayMedian)} m/s. Se avevi quota e alternative, conveniva scartarla e ripartire a cercarne una più forte: insistere su una termica debole in una buona giornata è il modo più comune di perdere tempo e chilometri.`
+        ? `${num(d.minutes)} min in ${d.thermal} a ${num(d.avgClimb)} m/s ${m}; mediana di salita del giorno ${num(d.dayMedian)} m/s. Dato: era tra le salite più deboli del volo. Utile sapere se in quel momento avevi alternative migliori a portata di planata.`
         : en
-          ? `You stayed ${num(d.minutes)} minutes in thermal ${d.thermal} at just ${num(d.avgClimb)} m/s ${m}, with the day's median at ${num(d.dayMedian)} m/s. If you had height and options, it paid to drop it and look for a stronger core: grinding a weak thermal on a good day is the most common way to lose time and kilometres.`
-          : `Du bist ${num(d.minutes)} Minuten im Bart ${d.thermal} bei nur ${num(d.avgClimb)} m/s geblieben ${m}, bei einem Tagesmedian von ${num(d.dayMedian)} m/s. Mit Höhe und Alternativen lohnt es sich, ihn fallen zu lassen und einen stärkeren Kern zu suchen: an einem guten Tag an einem schwachen Bart zu kleben kostet am meisten Zeit und Kilometer.`;
+          ? `${num(d.minutes)} min in ${d.thermal} at ${num(d.avgClimb)} m/s ${m}; the day's median climb was ${num(d.dayMedian)} m/s. Fact: this was among your weakest climbs. Worth knowing whether you had a better option within glide at that moment.`
+          : `${num(d.minutes)} min in ${d.thermal} bei ${num(d.avgClimb)} m/s ${m}; Tagesmedian ${num(d.dayMedian)} m/s. Fakt: einer deiner schwächsten Steigwerte. Relevant ist, ob du damals eine bessere Option in Gleitweite hattest.`;
     case 'low_save':
       return it
-        ? `Bel recupero ${m}: da ${num(d.aglAtLow)} m dal suolo hai rimontato ${num(d.regained)} m. Tienitelo come merito — ma il vero guadagno è capire cosa ti ha portato così in basso, per non rigiocartela alla cieca la prossima volta.`
+        ? `Recupero da ${num(d.aglAtLow)} m dal suolo, +${num(d.regained)} m guadagnati ${m}. Oggettivamente un aggancio difficile: buon dato di gestione delle quote basse.`
         : en
-          ? `Nice save ${m}: from ${num(d.aglAtLow)} m AGL you climbed back ${num(d.regained)} m. Take the credit — but the real lesson is understanding what got you that low, so you don't gamble on it next time.`
-          : `Schöner Save ${m}: aus ${num(d.aglAtLow)} m über Grund bist du ${num(d.regained)} m zurückgestiegen. Nimm das Lob mit — der eigentliche Gewinn ist zu verstehen, was dich so tief gebracht hat, um es nicht erneut aufs Spiel zu setzen.`;
+          ? `Save from ${num(d.aglAtLow)} m AGL, +${num(d.regained)} m regained ${m}. Objectively a hard connection: a solid low-altitude management data point.`
+          : `Save aus ${num(d.aglAtLow)} m über Grund, +${num(d.regained)} m zurück ${m}. Objektiv ein schwieriger Anschluss: ein guter Wert fürs Tiefenmanagement.`;
     case 'sink_line':
       return it
-        ? `Hai attraversato una linea di discendenza ${m} (${num(d.sustainedSinkS)}s sotto −2 m/s). In aria che scende così conviene accelerare per uscirne prima e cambiare linea — spesso basta spostarsi sul lato sopravento o verso il rilievo — invece di insistere lento e dritto, che è il modo peggiore di perdere quota.`
+        ? `Tratto con aria in discesa ${m}: ${num(d.sustainedSinkS)}s sotto −2 m/s. Dato di fatto sulla perdita di quota su quella linea. (Principio: in aria che scende, più velocità riduce il tempo di permanenza.)`
         : en
-          ? `You crossed a sink line ${m} (${num(d.sustainedSinkS)}s below −2 m/s). In air that's going down like this, speed up to get through it faster and change your line — often just shift to the windward side or toward the terrain — rather than pushing slow and straight, which is the worst way to bleed altitude.`
-          : `Du bist durch eine Abwindlinie geflogen ${m} (${num(d.sustainedSinkS)}s unter −2 m/s). In so absinkender Luft beschleunigen, um schneller hindurchzukommen, und die Linie wechseln — oft reicht die Luv-Seite oder Richtung Hang — statt langsam und stur geradeaus, was am meisten Höhe kostet.`;
+          ? `Sinking-air stretch ${m}: ${num(d.sustainedSinkS)}s below −2 m/s. A factual marker of the height lost on that line. (Principle: in sinking air, more speed cuts the time spent in it.)`
+          : `Abwind-Abschnitt ${m}: ${num(d.sustainedSinkS)}s unter −2 m/s. Sachlicher Marker für den Höhenverlust auf dieser Linie. (Prinzip: in absinkender Luft verkürzt mehr Speed die Verweildauer.)`;
     case 'low_crossing':
       if (d.endedFlight === 'yes')
         return it
-          ? `Attraversamento basso a ${num(d.minAgl)} m dal suolo ${m}: qui è finito il volo. Negli attraversamenti parti più alto e tieni sempre un atterrabile e una via di fuga: il margine di quota è ciò che ti dà altre chance per riagganciare.`
+          ? `Quota minima ${num(d.minAgl)} m dal suolo ${m}: qui è finito il volo. Dato di sicurezza, non un giudizio: margine ridotto = meno opzioni in attraversamento.`
           : en
-            ? `Low crossing at ${num(d.minAgl)} m AGL ${m}: the flight ended here. On crossings start higher and always keep a landing field and an escape line: height margin is what buys you more chances to climb again.`
-            : `Tiefe Querung bei ${num(d.minAgl)} m über Grund ${m}: hier endete der Flug. Bei Querungen höher einsteigen und immer ein Landefeld plus Fluchtweg behalten: die Höhenreserve verschafft dir weitere Chancen zum Wiederaufdrehen.`;
+            ? `Minimum height ${num(d.minAgl)} m AGL ${m}: the flight ended here. A safety data point, not a verdict: low margin = fewer options on a crossing.`
+            : `Minimalhöhe ${num(d.minAgl)} m über Grund ${m}: hier endete der Flug. Ein Sicherheits-Datenpunkt, kein Urteil: wenig Reserve = weniger Optionen bei der Querung.`;
       return it
-        ? `Sei sceso a soli ${num(d.minAgl)} m dal suolo ${m}. Più margine in attraversamento significa più opzioni se non agganci: meglio deviare verso una linea più sicura che tirare dritto e basso.`
+        ? `Quota minima ${num(d.minAgl)} m dal suolo in attraversamento ${m}. Nota di sicurezza (non un giudizio): più basso il margine, meno opzioni se non agganci.`
         : en
-          ? `You got down to just ${num(d.minAgl)} m AGL ${m}. More margin on a crossing means more options if you don't connect: better to divert to a safer line than to push on straight and low.`
-          : `Du bist auf nur ${num(d.minAgl)} m über Grund gesunken ${m}. Mehr Reserve bei einer Querung bedeutet mehr Optionen, falls du nicht ankoppelst: lieber auf eine sicherere Linie ausweichen als tief und stur geradeaus.`;
+          ? `Minimum height ${num(d.minAgl)} m AGL on a crossing ${m}. Safety note (not a verdict): the lower the margin, the fewer options if you don't connect.`
+          : `Minimalhöhe ${num(d.minAgl)} m über Grund bei einer Querung ${m}. Sicherheitshinweis (kein Urteil): je weniger Reserve, desto weniger Optionen ohne Anschluss.`;
   }
 }
 
