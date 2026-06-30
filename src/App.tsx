@@ -9,6 +9,7 @@ import { SplitsPanel } from './components/SplitsPanel';
 import { ThermalList } from './components/ThermalList';
 import { WindProfilePanel } from './components/WindProfilePanel';
 import { RegionalWindPanel } from './components/RegionalWindPanel';
+import { DayComparePanel } from './components/DayComparePanel';
 import { CoachPanel } from './components/CoachPanel';
 import { LangSwitcher } from './components/LangSwitcher';
 import { MapResizer } from './components/MapResizer';
@@ -49,6 +50,7 @@ export default function App() {
           <CoachPanel />
           <WindProfilePanel />
           <RegionalWindPanel />
+          <DayComparePanel />
           <ThermalList />
         </aside>
       </div>
