@@ -60,13 +60,13 @@ export function Barogram() {
     };
   }, [series, analysis]);
 
-  // cursore di replay: aggiorna solo la markLine, throttled, senza re-render React
+  // cursore di replay: aggiorna la markLine a ogni cambio di tempo, senza
+  // re-render React. Niente throttle → scrubbing liscio e immediato.
   useEffect(() => {
-    let lastUpdate = 0;
+    let lastT = -1;
     const unsub = useStore.subscribe((state) => {
-      const now = performance.now();
-      if (now - lastUpdate < 200) return;
-      lastUpdate = now;
+      if (state.currentTime === lastT) return; // aggiorna solo se il tempo cambia
+      lastT = state.currentTime;
       const chart = chartRef.current?.getEchartsInstance();
       if (!chart || !state.series) return;
       chart.setOption({
