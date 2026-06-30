@@ -60,6 +60,7 @@ export function CesiumViewer() {
   const flyTo = useStore((s) => s.flyTo);
   const followPilot = useStore((s) => s.followPilot);
   const showWind = useStore((s) => s.showWind);
+  const colorMode = useStore((s) => s.colorMode);
 
   // creazione viewer (una volta)
   useEffect(() => {
@@ -116,7 +117,7 @@ export function CesiumViewer() {
         pilotRef.current = null;
       }
 
-      const { positions, colors } = buildTrackGeometry(series);
+      const { positions, colors } = buildTrackGeometry(series, colorMode);
       const primitive = new Primitive({
         geometryInstances: new GeometryInstance({
           geometry: new PolylineGeometry({
@@ -181,7 +182,7 @@ export function CesiumViewer() {
     return () => {
       cancelled = true;
     };
-  }, [series, viewerReady]);
+  }, [series, viewerReady, colorMode]);
 
   // aggiornamento posizione/heading/vario del pilota a ogni tick del clock
   useEffect(() => {

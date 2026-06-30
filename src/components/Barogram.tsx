@@ -80,24 +80,27 @@ export function Barogram() {
     return unsub;
   }, []);
 
-  // click ovunque nel grafico → sposta il replay a quell'istante (non solo
-  // beccando la linea): converte il pixel cliccato in tempo dell'asse x.
-  useEffect(() => {
-    const chart = chartRef.current?.getEchartsInstance();
-    if (!chart) return;
-    const zr = chart.getZr();
-    const handler = (e: { offsetX: number; offsetY: number }) => {
-      const pt: [number, number] = [e.offsetX, e.offsetY];
-      if (!chart.containPixel('grid', pt)) return;
-      const coord = chart.convertFromPixel({ gridIndex: 0 }, pt) as number[];
-      const tVal = Array.isArray(coord) ? coord[0] : coord;
-      if (typeof tVal === 'number' && !Number.isNaN(tVal)) setTime(tVal);
-    };
-    zr.on('click', handler);
-    return () => zr.off('click', handler);
-  }, [series, setTime]);
-
   if (!series) return null;
+
+  // click ovunque nel grafico → sposta il replay (e quindi la freccia sulla
+  // mappa) a quell'istante. Agganciato quando il grafico è pronto; converte il
+  // pixel in tempo dell'asse x e lo limita all'intervallo del volo (così
+  // funziona anche cliccando in basso, fuori dall'area dati).
+  const onChartReady = (instance: unknown) => {
+    const chart = instance as {
+      getZr: () => { on: (ev: string, cb: (e: { offsetX: number; offsetY: number }) => void) => void };
+      convertFromPixel: (finder: unknown, value: number[]) => number | number[];
+    };
+    chart.getZr().on('click', (e) => {
+      const coord = chart.convertFromPixel({ gridIndex: 0 }, [e.offsetX, e.offsetY]);
+      const tVal = Array.isArray(coord) ? coord[0] : coord;
+      const s = useStore.getState().series;
+      if (!s || typeof tVal !== 'number' || Number.isNaN(tVal)) return;
+      const t0 = s.t[0];
+      const t1 = s.t[s.t.length - 1];
+      setTime(Math.max(t0, Math.min(t1, tVal)));
+    });
+  };
 
   return (
     <div className="barogram">
@@ -106,6 +109,7 @@ export function Barogram() {
         option={option}
         style={{ height: '100%', width: '100%' }}
         notMerge={false}
+        onChartReady={onChartReady}
       />
     </div>
   );
