@@ -88,7 +88,7 @@ export const useStore = create<AppState>((set) => ({
   followPilot: false,
   showWind: true,
   colorMode: 'vario',
-  shareAnon: true,
+  shareAnon: false,
 
   setLoading: () => set({ status: 'loading', errorMsg: null }),
   setError: (msg) => set({ status: 'error', errorMsg: msg, playing: false }),

@@ -616,7 +616,14 @@ body,
 
   .map-col {
     flex: none;
-    height: var(--map-h, 65vh);
+    height: auto; /* contenuto: mappa(var) + maniglia + playback + barogramma */
+  }
+
+  /* su mobile la maniglia ridimensiona SOLO la mappa; il resto resta sotto,
+     sempre visibile e raggiungibile (la mappa si recupera sempre) */
+  .cesium-wrap {
+    flex: none;
+    height: var(--map-h, 52vh);
   }
 
   .map-resizer {
