@@ -4,8 +4,8 @@ import { UploadDropzone } from './components/UploadDropzone';
 import { CesiumViewer } from './map/CesiumViewer';
 import { Barogram } from './components/Barogram';
 import { PlaybackControls } from './components/PlaybackControls';
+import { XcHeadline } from './components/XcHeadline';
 import { StatsPanel } from './components/StatsPanel';
-import { SplitsPanel } from './components/SplitsPanel';
 import { GlideEfficiencyPanel } from './components/GlideEfficiencyPanel';
 import { ThermalList } from './components/ThermalList';
 import { WindProfilePanel } from './components/WindProfilePanel';
@@ -41,12 +41,12 @@ export default function App() {
         <div className="map-col">
           <CesiumViewer />
           <MapResizer />
+          <XcHeadline />
           <PlaybackControls />
           <Barogram />
         </div>
         <aside className="sidebar">
           <StatsPanel />
-          <SplitsPanel />
           <GlideEfficiencyPanel />
           <CoachPanel />
           <WindProfilePanel />
