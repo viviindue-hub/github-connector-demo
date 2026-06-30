@@ -225,6 +225,35 @@ body,
   display: none; /* credits compatti: per produzione valutare attribuzione visibile */
 }
 
+.xc-bar {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 14px;
+  background: #161b23;
+  border-top: 1px solid #262c36;
+}
+
+.xc-key {
+  color: #9aa4b2;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.xc-val {
+  color: #e8b33c;
+  font-weight: 700;
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.xc-sub {
+  color: #c7cdd6;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .barogram {
   height: 180px;
   background: #161b23;
