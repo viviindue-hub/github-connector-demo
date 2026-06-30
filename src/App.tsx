@@ -11,20 +11,28 @@ import { ThermalList } from './components/ThermalList';
 import { WindProfilePanel } from './components/WindProfilePanel';
 import { RegionalWindPanel } from './components/RegionalWindPanel';
 import { CoachPanel } from './components/CoachPanel';
+import { FlightTypeBadge } from './components/FlightTypeBadge';
 import { LangSwitcher } from './components/LangSwitcher';
 import { MapResizer } from './components/MapResizer';
+import { useFlightType } from './state/useFlightType';
 import { t } from './i18n';
 
 export default function App() {
   const status = useStore((s) => s.status);
   const lang = useStore((s) => s.lang);
   const reset = useStore((s) => s.reset);
+  const { effective } = useFlightType();
 
   useEffect(() => startPlaybackLoop(), []);
 
   if (status !== 'ready') {
     return <UploadDropzone />;
   }
+
+  // adatta l'UI al tipo di volo: niente info inutili/fuorvianti
+  const isSled = effective === 'sled'; // planata: niente termiche/vento/XC
+  const isXc = effective === 'xc'; // solo l'XC mostra la velocità XC in cima
+  const showThermalsWind = !isSled;
 
   return (
     <div className="app-layout">
@@ -41,17 +49,18 @@ export default function App() {
         <div className="map-col">
           <CesiumViewer />
           <MapResizer />
-          <XcHeadline />
+          {isXc && <XcHeadline />}
           <PlaybackControls />
           <Barogram />
         </div>
         <aside className="sidebar">
+          <FlightTypeBadge />
           <StatsPanel />
           <GlideEfficiencyPanel />
           <CoachPanel />
-          <WindProfilePanel />
-          <RegionalWindPanel />
-          <ThermalList />
+          {showThermalsWind && <WindProfilePanel />}
+          {showThermalsWind && <RegionalWindPanel />}
+          {showThermalsWind && <ThermalList />}
         </aside>
       </div>
     </div>
