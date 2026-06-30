@@ -186,26 +186,6 @@ function bestThermal(thermals: ThermalSegment[]): ThermalSegment | null {
   return thermals.reduce((a, b) => (b.best30s > a.best30s ? b : a));
 }
 
-function centeringNote(avgRadius: number, lang: Lang): string {
-  if (lang === 'it')
-    return avgRadius <= 60
-      ? ' — centraggio stretto, buono.'
-      : avgRadius <= 90
-        ? " — centraggio discreto, c'è margine per stringere."
-        : ' — virate larghe: stringendo guadagneresti di più.';
-  if (lang === 'en')
-    return avgRadius <= 60
-      ? ' — tight centering, good.'
-      : avgRadius <= 90
-        ? ' — decent centering, room to tighten.'
-        : ' — wide turns: tightening would gain you more.';
-  return avgRadius <= 60
-    ? ' — enges Zentrieren, gut.'
-    : avgRadius <= 90
-      ? ' — ordentliches Zentrieren, Luft nach oben.'
-      : ' — weite Kreise: enger drehen bringt mehr.';
-}
-
 /** Paragrafo "storia del volo". */
 export function buildFlightStory(track: FlightTrack, analysis: FlightAnalysis, lang: Lang): string {
   const { totals, thermals, windProfile } = analysis;
@@ -233,12 +213,15 @@ export function buildFlightStory(track: FlightTrack, analysis: FlightAnalysis, l
           ? `, the best [[${best.id}]] at +${best.best30s.toFixed(1)} m/s over 30 s`
           : `, der beste [[${best.id}]] mit +${best.best30s.toFixed(1)} m/s über 30 s`
       : '';
+    // NB: niente giudizio sul raggio (stretto/largo): il raggio "giusto"
+    // dipende dalle condizioni — termiche più strette in primavera/estate con
+    // forte gradiente, più larghe in autunno/inverno. Riportiamo solo il dato.
     const head = it
-      ? `Hai sfruttato ${thermals.length} termiche${bestTxt}. Raggio medio di virata ${avgRadius} m`
+      ? `Hai sfruttato ${thermals.length} termiche${bestTxt}. Raggio medio di virata ${avgRadius} m.`
       : en
-        ? `You used ${thermals.length} thermals${bestTxt}. Average turn radius ${avgRadius} m`
-        : `Du hast ${thermals.length} Bärte genutzt${bestTxt}. Mittlerer Kreisradius ${avgRadius} m`;
-    parts.push(head + centeringNote(avgRadius, lang));
+        ? `You used ${thermals.length} thermals${bestTxt}. Average turn radius ${avgRadius} m.`
+        : `Du hast ${thermals.length} Bärte genutzt${bestTxt}. Mittlerer Kreisradius ${avgRadius} m.`;
+    parts.push(head);
   }
 
   const wastedTxt =
