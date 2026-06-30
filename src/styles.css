@@ -53,6 +53,17 @@ body,
   color: #6b7585;
 }
 
+.share-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: #9aa4b2;
+  text-align: left;
+  cursor: pointer;
+}
+
 .file-btn {
   display: inline-block;
   background: #e8b33c;

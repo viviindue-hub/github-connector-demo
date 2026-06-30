@@ -38,6 +38,8 @@ interface AppState {
   showWind: boolean;
   /** come colorare la traccia 3D: per vario o per velocità di avanzamento */
   colorMode: 'vario' | 'speed';
+  /** condividere campioni di vento anonimi col profilo di zona */
+  shareAnon: boolean;
 
   setLoading: () => void;
   setError: (msg: string) => void;
@@ -56,6 +58,7 @@ interface AppState {
   setFollowPilot: (f: boolean) => void;
   setShowWind: (v: boolean) => void;
   setColorMode: (m: 'vario' | 'speed') => void;
+  setShareAnon: (v: boolean) => void;
   setLang: (l: Lang) => void;
   requestFlyTo: (target: Omit<FlyToTarget, 'seq'>) => void;
   reset: () => void;
@@ -85,6 +88,7 @@ export const useStore = create<AppState>((set) => ({
   followPilot: false,
   showWind: true,
   colorMode: 'vario',
+  shareAnon: true,
 
   setLoading: () => set({ status: 'loading', errorMsg: null }),
   setError: (msg) => set({ status: 'error', errorMsg: msg, playing: false }),
@@ -107,6 +111,7 @@ export const useStore = create<AppState>((set) => ({
   setFollowPilot: (f) => set({ followPilot: f }),
   setShowWind: (v) => set({ showWind: v }),
   setColorMode: (m) => set({ colorMode: m }),
+  setShareAnon: (v) => set({ shareAnon: v }),
   setLang: (l) => set({ lang: l }),
   requestFlyTo: (target) =>
     set((st) => ({
