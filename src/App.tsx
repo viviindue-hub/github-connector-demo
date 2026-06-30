@@ -5,6 +5,7 @@ import { CesiumViewer } from './map/CesiumViewer';
 import { Barogram } from './components/Barogram';
 import { PlaybackControls } from './components/PlaybackControls';
 import { StatsPanel } from './components/StatsPanel';
+import { SplitsPanel } from './components/SplitsPanel';
 import { ThermalList } from './components/ThermalList';
 import { WindProfilePanel } from './components/WindProfilePanel';
 import { RegionalWindPanel } from './components/RegionalWindPanel';
@@ -44,6 +45,7 @@ export default function App() {
         </div>
         <aside className="sidebar">
           <StatsPanel />
+          <SplitsPanel />
           <CoachPanel />
           <WindProfilePanel />
           <RegionalWindPanel />
