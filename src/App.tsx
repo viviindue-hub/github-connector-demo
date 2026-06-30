@@ -6,6 +6,7 @@ import { Barogram } from './components/Barogram';
 import { PlaybackControls } from './components/PlaybackControls';
 import { StatsPanel } from './components/StatsPanel';
 import { SplitsPanel } from './components/SplitsPanel';
+import { GlideEfficiencyPanel } from './components/GlideEfficiencyPanel';
 import { ThermalList } from './components/ThermalList';
 import { WindProfilePanel } from './components/WindProfilePanel';
 import { RegionalWindPanel } from './components/RegionalWindPanel';
@@ -46,6 +47,7 @@ export default function App() {
         <aside className="sidebar">
           <StatsPanel />
           <SplitsPanel />
+          <GlideEfficiencyPanel />
           <CoachPanel />
           <WindProfilePanel />
           <RegionalWindPanel />
