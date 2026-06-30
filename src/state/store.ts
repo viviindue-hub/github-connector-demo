@@ -36,6 +36,8 @@ interface AppState {
   followPilot: boolean;
   /** frecce del vento (una per termica) sulla mappa */
   showWind: boolean;
+  /** come colorare la traccia 3D: per vario o per velocità di avanzamento */
+  colorMode: 'vario' | 'speed';
 
   setLoading: () => void;
   setError: (msg: string) => void;
@@ -53,6 +55,7 @@ interface AppState {
   setSpeed: (s: number) => void;
   setFollowPilot: (f: boolean) => void;
   setShowWind: (v: boolean) => void;
+  setColorMode: (m: 'vario' | 'speed') => void;
   setLang: (l: Lang) => void;
   requestFlyTo: (target: Omit<FlyToTarget, 'seq'>) => void;
   reset: () => void;
@@ -81,6 +84,7 @@ export const useStore = create<AppState>((set) => ({
   flyTo: null,
   followPilot: false,
   showWind: true,
+  colorMode: 'vario',
 
   setLoading: () => set({ status: 'loading', errorMsg: null }),
   setError: (msg) => set({ status: 'error', errorMsg: msg, playing: false }),
@@ -102,6 +106,7 @@ export const useStore = create<AppState>((set) => ({
   setSpeed: (s) => set({ speed: s }),
   setFollowPilot: (f) => set({ followPilot: f }),
   setShowWind: (v) => set({ showWind: v }),
+  setColorMode: (m) => set({ colorMode: m }),
   setLang: (l) => set({ lang: l }),
   requestFlyTo: (target) =>
     set((st) => ({

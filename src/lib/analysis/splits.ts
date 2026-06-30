@@ -9,6 +9,29 @@ import type { DerivedSeries } from '../types';
  * è lì che si vede, oggettivamente, "ho girato troppo". Niente giudizi.
  */
 
+/**
+ * Velocità di avanzamento (in linea d'aria) per OGNI punto, su finestra mobile
+ * centrata (default ±60 s): serve a colorare la traccia per "andatura" — rosso
+ * dove si è in lotta/fermi, verde dove si avanza forte. km/h.
+ */
+export function rollingMadeGoodKmh(series: DerivedSeries, windowSec = 120): Float64Array {
+  const n = series.t.length;
+  const out = new Float64Array(n);
+  const half = Math.max(1, Math.round(windowSec / 2));
+  for (let i = 0; i < n; i++) {
+    const a = Math.max(0, i - half);
+    const b = Math.min(n - 1, i + half);
+    const dt = (series.t[b] - series.t[a]) / 1000;
+    if (dt <= 0) {
+      out[i] = 0;
+      continue;
+    }
+    const straight = haversine(series.lat[a], series.lon[a], series.lat[b], series.lon[b]);
+    out[i] = (straight / dt) * 3.6;
+  }
+  return out;
+}
+
 export interface FlightSplit {
   startIdx: number;
   endIdx: number;

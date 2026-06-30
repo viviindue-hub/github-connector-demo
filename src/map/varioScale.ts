@@ -71,3 +71,43 @@ export function varioCssGradient(): string {
   });
   return `linear-gradient(to top, ${stops.join(', ')})`;
 }
+
+// ---- scala VELOCITÀ di avanzamento (km/h): rosso=lento/lotta → verde=veloce ----
+export const SPEED_STOPS: VarioStop[] = [
+  { v: 0, rgb: [210, 60, 50] }, // fermo / in lotta
+  { v: 10, rgb: [245, 166, 35] }, // arancio
+  { v: 20, rgb: [232, 229, 74] }, // giallo
+  { v: 30, rgb: [111, 209, 82] }, // verde
+  { v: 40, rgb: [40, 194, 224] }, // ciano = molto veloce
+];
+const SPEED_MIN = SPEED_STOPS[0].v;
+const SPEED_MAX = SPEED_STOPS[SPEED_STOPS.length - 1].v;
+
+export function speedColor(kmh: number, alpha = 0.95): Color {
+  let v = kmh;
+  if (v <= SPEED_MIN) v = SPEED_MIN;
+  if (v >= SPEED_MAX) v = SPEED_MAX;
+  let rgb = SPEED_STOPS[SPEED_STOPS.length - 1].rgb;
+  for (let i = 0; i < SPEED_STOPS.length - 1; i++) {
+    const a = SPEED_STOPS[i];
+    const b = SPEED_STOPS[i + 1];
+    if (v >= a.v && v <= b.v) {
+      const w = (v - a.v) / (b.v - a.v);
+      rgb = [
+        Math.round(lerp(a.rgb[0], b.rgb[0], w)),
+        Math.round(lerp(a.rgb[1], b.rgb[1], w)),
+        Math.round(lerp(a.rgb[2], b.rgb[2], w)),
+      ];
+      break;
+    }
+  }
+  return new Color(rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, alpha);
+}
+
+export function speedCssGradient(): string {
+  const stops = SPEED_STOPS.map((s) => {
+    const pct = ((s.v - SPEED_MIN) / (SPEED_MAX - SPEED_MIN)) * 100;
+    return `rgb(${s.rgb[0]}, ${s.rgb[1]}, ${s.rgb[2]}) ${pct.toFixed(0)}%`;
+  });
+  return `linear-gradient(to top, ${stops.join(', ')})`;
+}

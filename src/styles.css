@@ -173,9 +173,13 @@ body,
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  pointer-events: none;
+  gap: 6px;
   backdrop-filter: blur(3px);
+}
+
+.legend-toggle .lang-btn {
+  padding: 3px 7px;
+  font-size: 0.7rem;
 }
 
 .vario-legend-title {

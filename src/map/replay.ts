@@ -1,6 +1,7 @@
 import { Cartesian3, Color } from 'cesium';
 import type { DerivedSeries } from '../lib/types';
-import { varioColor } from './varioScale';
+import { varioColor, speedColor } from './varioScale';
+import { rollingMadeGoodKmh } from '../lib/analysis/splits';
 
 export { varioColor };
 
@@ -10,17 +11,23 @@ export interface TrackGeometry {
 }
 
 /**
- * Geometria della traccia colorata per vario, decimata a ~maxVertices
- * per tenere leggera la polyline.
+ * Geometria della traccia, decimata a ~maxVertices. Colorata per vario
+ * (default) oppure per velocità di avanzamento ("speed"), così si vede dove
+ * si è avanzato forte e dove si è in lotta.
  */
-export function buildTrackGeometry(series: DerivedSeries, maxVertices = 5000): TrackGeometry {
+export function buildTrackGeometry(
+  series: DerivedSeries,
+  mode: 'vario' | 'speed' = 'vario',
+  maxVertices = 5000,
+): TrackGeometry {
   const n = series.t.length;
   const stride = Math.max(1, Math.ceil(n / maxVertices));
+  const speed = mode === 'speed' ? rollingMadeGoodKmh(series) : null;
   const positions: Cartesian3[] = [];
   const colors: Color[] = [];
   for (let i = 0; i < n; i += stride) {
     positions.push(Cartesian3.fromDegrees(series.lon[i], series.lat[i], series.alt[i]));
-    colors.push(varioColor(series.vario[i]));
+    colors.push(speed ? speedColor(speed[i]) : varioColor(series.vario[i]));
   }
   return { positions, colors };
 }
