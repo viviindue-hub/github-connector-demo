@@ -6,6 +6,12 @@ import { generateFlightVideo, isGenerateSupported } from '../lib/renderVideo';
 
 const SPEEDS = [1, 10, 25, 50, 100];
 
+interface VideoToggles {
+  hud: boolean;
+  captions: boolean;
+  stats: boolean;
+}
+
 export function PlaybackControls() {
   const series = useStore((s) => s.series);
   const track = useStore((s) => s.track);
@@ -19,6 +25,8 @@ export function PlaybackControls() {
 
   const [genPct, setGenPct] = useState<number | null>(null);
   const [video, setVideo] = useState<{ blob: Blob; ext: string } | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [toggles, setToggles] = useState<VideoToggles>({ hud: true, captions: true, stats: true });
   const busyRef = useRef(false);
 
   if (!series) return null;
@@ -32,11 +40,26 @@ export function PlaybackControls() {
       return;
     }
     busyRef.current = true;
+    setMenuOpen(false);
     setVideo(null);
     setGenPct(0);
     try {
       // tutto in background su un viewer nascosto: qui si continua a usare l'app
-      const blob = await generateFlightVideo(series, analysis, track, (p) => setGenPct(p));
+      const blob = await generateFlightVideo(
+        series,
+        analysis,
+        track,
+        {
+          ...toggles,
+          sceneLabels: {
+            thermal: t(lang, 'scThermal'),
+            glide: t(lang, 'scGlide'),
+            save: t(lang, 'scSave'),
+            moment: t(lang, 'scMoment'),
+          },
+        },
+        (p) => setGenPct(p),
+      );
       setVideo({ blob, ext: 'mp4' });
     } catch {
       alert(t(lang, 'videoUnsupported'));
@@ -45,6 +68,8 @@ export function PlaybackControls() {
       setGenPct(null);
     }
   };
+
+  const toggle = (k: keyof VideoToggles) => setToggles((v) => ({ ...v, [k]: !v[k] }));
 
   const onShareVideo = async () => {
     if (!video || !track) return;
@@ -96,13 +121,33 @@ export function PlaybackControls() {
         </label>
         <button
           className="video-btn"
-          onClick={() => void onGenerate()}
+          onClick={() => setMenuOpen((o) => !o)}
           disabled={genPct !== null}
           title={t(lang, 'videoTitle')}
         >
           {genPct === null ? '🎬' : `⏳ ${Math.round(genPct * 100)}%`}
         </button>
       </div>
+      {menuOpen && genPct === null && (
+        <div className="video-menu">
+          <span className="video-menu-title">{t(lang, 'videoOptTitle')}</span>
+          <label className="follow-toggle">
+            <input type="checkbox" checked={toggles.hud} onChange={() => toggle('hud')} />
+            {t(lang, 'videoOptHud')}
+          </label>
+          <label className="follow-toggle">
+            <input type="checkbox" checked={toggles.captions} onChange={() => toggle('captions')} />
+            {t(lang, 'videoOptCaptions')}
+          </label>
+          <label className="follow-toggle">
+            <input type="checkbox" checked={toggles.stats} onChange={() => toggle('stats')} />
+            {t(lang, 'videoOptStats')}
+          </label>
+          <button className="share-btn" onClick={() => void onGenerate()}>
+            {t(lang, 'videoGenerate')}
+          </button>
+        </div>
+      )}
       {video && (
         <div className="video-ready">
           <span className="video-ready-label">🎬 {t(lang, 'videoReady')}</span>
