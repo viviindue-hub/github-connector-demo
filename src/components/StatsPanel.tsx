@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { useStore } from '../state/store';
 import { t as tr } from '../i18n';
 import { avgGroundSpeedKmh, estimateAvgAirspeedKmh } from '../lib/analysis/airspeed';
+import { freeDistanceKm } from '../lib/analysis/xc';
 
 export function StatsPanel() {
   const track = useStore((s) => s.track);
@@ -9,21 +11,28 @@ export function StatsPanel() {
   const weather = useStore((s) => s.weather);
   const lang = useStore((s) => s.lang);
 
+  const xcKm = useMemo(() => (series ? freeDistanceKm(series) : 0), [series]);
+
   if (!track || !analysis || !series) return null;
   const tot = analysis.totals;
 
   const groundKmh = avgGroundSpeedKmh(series);
   const airKmh = estimateAvgAirspeedKmh(series, analysis.thermals);
 
+  // ordine da pilota: prima ciò che conta (durata, distanza XC, quota),
+  // poi le salite, poi la ripartizione del tempo, poi le velocità.
+  // Niente "distanza traccia": gonfiata dal circling, fuorviante.
   const stats: Array<[string, string]> = [
     [tr(lang, 'statDuration'), `${Math.floor(tot.durationMin / 60)}h ${tot.durationMin % 60}m`],
-    [tr(lang, 'statTrackDist'), `${tot.trackDistanceKm} km`],
+    [tr(lang, 'statXcDist'), `${xcKm.toFixed(0)} km`],
     [tr(lang, 'statMaxAlt'), `${tot.maxAltM} m`],
     [tr(lang, 'statAvgClimb'), `${tot.avgClimb} m/s`],
     [tr(lang, 'statMedianThermal'), `${tot.medianThermalClimb} m/s`],
     [tr(lang, 'statInThermal'), `${tot.pctClimb}%`],
     [tr(lang, 'statInGlide'), `${tot.pctGlide}%`],
-    [tr(lang, 'statWasted'), `${tot.minutesWasted} min`],
+    ...(tot.minutesWasted > 0
+      ? ([[tr(lang, 'statWasted'), `${tot.minutesWasted} min`]] as Array<[string, string]>)
+      : []),
     ...(groundKmh !== null
       ? ([[tr(lang, 'statGroundSpeed'), `${Math.round(groundKmh)} km/h`]] as Array<[string, string]>)
       : []),

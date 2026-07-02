@@ -56,11 +56,11 @@ export default function App() {
         <aside className="sidebar">
           <FlightTypeBadge />
           <StatsPanel />
-          <GlideEfficiencyPanel />
           <CoachPanel />
+          {showThermalsWind && <ThermalList />}
+          <GlideEfficiencyPanel />
           {showThermalsWind && <WindProfilePanel />}
           {showThermalsWind && <RegionalWindPanel />}
-          {showThermalsWind && <ThermalList />}
         </aside>
       </div>
     </div>
