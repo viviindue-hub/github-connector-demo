@@ -76,6 +76,8 @@ export function CesiumViewer() {
       const viewer = new Viewer(containerRef.current, {
         terrainProvider,
         baseLayer,
+        // necessario per catturare il canvas nel video export
+        contextOptions: { webgl: { preserveDrawingBuffer: true } },
         animation: false,
         timeline: false,
         baseLayerPicker: false,
