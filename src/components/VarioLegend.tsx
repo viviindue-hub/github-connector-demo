@@ -12,6 +12,8 @@ export function VarioLegend() {
   const setColorMode = useStore((s) => s.setColorMode);
   const showRoute = useStore((s) => s.showRoute);
   const setShowRoute = useStore((s) => s.setShowRoute);
+  const showWind = useStore((s) => s.showWind);
+  const setShowWind = useStore((s) => s.setShowWind);
   const lang = useStore((s) => s.lang);
 
   const isClean = colorMode === 'clean';
@@ -64,6 +66,10 @@ export function VarioLegend() {
           onChange={(e) => setShowRoute(e.target.checked)}
         />
         {t(lang, 'legsTitle')}
+      </label>
+      <label className="follow-toggle legend-route">
+        <input type="checkbox" checked={showWind} onChange={(e) => setShowWind(e.target.checked)} />
+        {t(lang, 'windToggle')}
       </label>
     </div>
   );

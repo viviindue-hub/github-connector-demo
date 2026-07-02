@@ -1,15 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useStore } from '../state/store';
 import { t } from '../i18n';
-import {
-  downloadBlob,
-  isVideoSupported,
-  shareBlob,
-  startFlightVideo,
-  type VideoHandle,
-} from '../lib/videoExport';
-import { buildStoryboard, runCinema, type CinemaHandle } from '../lib/cinema';
-import { freeDistanceKm, xcSpeedKmh } from '../lib/analysis/xc';
+import { downloadBlob, shareBlob } from '../lib/videoExport';
+import { generateFlightVideo, isGenerateSupported } from '../lib/renderVideo';
 
 const SPEEDS = [1, 10, 25, 50, 100];
 
@@ -21,59 +14,36 @@ export function PlaybackControls() {
   const speed = useStore((s) => s.speed);
   const currentTime = useStore((s) => s.currentTime);
   const followPilot = useStore((s) => s.followPilot);
-  const showWind = useStore((s) => s.showWind);
   const lang = useStore((s) => s.lang);
-  const { setPlaying, setSpeed, setTime, setFollowPilot, setShowWind } = useStore.getState();
+  const { setPlaying, setSpeed, setTime, setFollowPilot } = useStore.getState();
 
-  const [recording, setRecording] = useState(false);
+  const [genPct, setGenPct] = useState<number | null>(null);
   const [video, setVideo] = useState<{ blob: Blob; ext: string } | null>(null);
-  const recRef = useRef<VideoHandle | null>(null);
-  const cinemaRef = useRef<CinemaHandle | null>(null);
-  const prevSpeedRef = useRef(25);
-
-  const stopRec = () => {
-    cinemaRef.current?.cancel();
-    cinemaRef.current = null;
-    recRef.current?.stop(); // onstop → setVideo
-    recRef.current = null;
-    setPlaying(false);
-    setSpeed(prevSpeedRef.current);
-    setFollowPilot(false);
-    setRecording(false);
-  };
-
-  // sicurezza: chiudi tutto se il componente muore
-  useEffect(() => () => stopRec(), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const busyRef = useRef(false);
 
   if (!series) return null;
   const t0 = series.t[0];
   const t1 = series.t[series.t.length - 1];
 
-  const startRec = () => {
-    if (!track || !analysis || recording) return;
-    if (!isVideoSupported()) {
+  const onGenerate = async () => {
+    if (!track || !analysis || busyRef.current) return;
+    if (!isGenerateSupported()) {
       alert(t(lang, 'videoUnsupported'));
       return;
     }
-    const km = freeDistanceKm(series);
-    const spd = xcSpeedKmh(km, analysis.totals.durationMin);
-    const overlay = {
-      title: track.site ?? 'Flight',
-      sub: track.date,
-      stats: `${km.toFixed(0)} km · ${spd.toFixed(0)} km/h · ↑${analysis.totals.maxAltM} m`,
-    };
-    const handle = startFlightVideo(overlay, (blob, ext) => setVideo({ blob, ext }));
-    if (!handle) {
-      alert(t(lang, 'videoUnsupported'));
-      return;
-    }
-    recRef.current = handle;
-    prevSpeedRef.current = speed;
+    busyRef.current = true;
     setVideo(null);
-    setRecording(true);
-    // il REGISTA pilota tutto: panoramica → highlights → finale (~30 s)
-    const scenes = buildStoryboard(series, analysis);
-    cinemaRef.current = runCinema(scenes, stopRec);
+    setGenPct(0);
+    try {
+      // tutto in background su un viewer nascosto: qui si continua a usare l'app
+      const blob = await generateFlightVideo(series, analysis, track, (p) => setGenPct(p));
+      setVideo({ blob, ext: 'mp4' });
+    } catch {
+      alert(t(lang, 'videoUnsupported'));
+    } finally {
+      busyRef.current = false;
+      setGenPct(null);
+    }
   };
 
   const onShareVideo = async () => {
@@ -124,23 +94,16 @@ export function PlaybackControls() {
           />
           {t(lang, 'follow')}
         </label>
-        <label className="follow-toggle">
-          <input
-            type="checkbox"
-            checked={showWind}
-            onChange={(e) => setShowWind(e.target.checked)}
-          />
-          {t(lang, 'windToggle')}
-        </label>
         <button
-          className={`video-btn${recording ? ' rec' : ''}`}
-          onClick={() => (recording ? stopRec() : startRec())}
-          title={recording ? t(lang, 'videoStop') : t(lang, 'videoTitle')}
+          className="video-btn"
+          onClick={() => void onGenerate()}
+          disabled={genPct !== null}
+          title={t(lang, 'videoTitle')}
         >
-          {recording ? '⏺ REC' : '🎬'}
+          {genPct === null ? '🎬' : `⏳ ${Math.round(genPct * 100)}%`}
         </button>
       </div>
-      {video && !recording && (
+      {video && (
         <div className="video-ready">
           <span className="video-ready-label">🎬 {t(lang, 'videoReady')}</span>
           <button className="share-btn" onClick={() => void onShareVideo()}>
