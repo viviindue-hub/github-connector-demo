@@ -2,15 +2,30 @@
   box-sizing: border-box;
 }
 
+:root {
+  --bg: #0f131a;
+  --bg-raised: #171d27;
+  --bg-inset: #10151d;
+  --line: #262f3c;
+  --text: #e8ecf1;
+  --text-dim: #93a0b0;
+  --accent: #e8b33c;
+}
+
 html,
 body,
 #root {
   margin: 0;
   height: 100%;
-  background: #11151c;
-  color: #e6e9ee;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, 'SF Pro Text', 'Segoe UI', Roboto, system-ui, sans-serif;
   overflow-x: hidden; /* niente pan orizzontale della pagina */
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333d4c transparent;
 }
 
 /* ---------- dropzone ---------- */
@@ -319,32 +334,36 @@ body,
 
 /* ---------- sidebar ---------- */
 .sidebar {
-  width: 340px;
+  width: 350px;
   overflow-y: auto;
-  background: #141922;
-  border-left: 1px solid #262c36;
-  padding: 12px;
+  background: #121722;
+  border-left: 1px solid var(--line);
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
 .panel {
-  background: #1a212c;
-  border: 1px solid #262c36;
-  border-radius: 10px;
-  padding: 14px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
 }
 
 .panel h2 {
   margin: 0 0 4px;
   font-size: 1.05rem;
+  letter-spacing: -0.01em;
 }
 
 .panel h3 {
-  margin: 12px 0 8px;
-  font-size: 0.95rem;
-  color: #c7cdd6;
+  margin: 14px 0 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
 }
 
 .panel h3:first-child {
@@ -359,16 +378,19 @@ body,
 }
 
 .stat {
-  background: #11151c;
-  border-radius: 8px;
-  padding: 8px 10px;
+  background: var(--bg-inset);
+  border: 1px solid #202836;
+  border-radius: 10px;
+  padding: 9px 11px;
   display: flex;
   flex-direction: column;
 }
 
 .stat-value {
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1.08rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .stat-label {
