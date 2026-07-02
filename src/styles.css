@@ -164,6 +164,24 @@ body,
   animation: blink 1.2s step-end infinite;
 }
 
+.video-menu {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  padding: 8px 14px;
+  background: #1c2430;
+  border-top: 1px solid var(--line);
+}
+
+.video-menu-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .video-ready {
   display: flex;
   align-items: center;
