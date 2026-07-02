@@ -10,14 +10,17 @@ export interface TrackGeometry {
   colors: Color[];
 }
 
+/** Colore della traccia "pulita": oro del brand, elegante sul satellite. */
+const CLEAN_COLOR = new Color(0.91, 0.7, 0.24, 0.95);
+
 /**
- * Geometria della traccia, decimata a ~maxVertices. Colorata per vario
- * (default) oppure per velocità di avanzamento ("speed"), così si vede dove
- * si è avanzato forte e dove si è in lotta.
+ * Geometria della traccia, decimata a ~maxVertices. Stile: "clean" (linea
+ * pulita monocolore), "vario" o "speed" (velocità di avanzamento) — così si
+ * parte puliti e si attivano i colori come filtri.
  */
 export function buildTrackGeometry(
   series: DerivedSeries,
-  mode: 'vario' | 'speed' = 'vario',
+  mode: 'clean' | 'vario' | 'speed' = 'clean',
   maxVertices = 5000,
 ): TrackGeometry {
   const n = series.t.length;
@@ -27,7 +30,9 @@ export function buildTrackGeometry(
   const colors: Color[] = [];
   for (let i = 0; i < n; i += stride) {
     positions.push(Cartesian3.fromDegrees(series.lon[i], series.lat[i], series.alt[i]));
-    colors.push(speed ? speedColor(speed[i]) : varioColor(series.vario[i]));
+    colors.push(
+      mode === 'clean' ? CLEAN_COLOR : speed ? speedColor(speed[i]) : varioColor(series.vario[i]),
+    );
   }
   return { positions, colors };
 }
