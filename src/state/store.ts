@@ -37,8 +37,12 @@ interface AppState {
   followPilot: boolean;
   /** frecce del vento (una per termica) sulla mappa */
   showWind: boolean;
-  /** come colorare la traccia 3D: per vario o per velocità di avanzamento */
-  colorMode: 'vario' | 'speed';
+  /** stile traccia 3D: pulita, colorata per vario o per velocità */
+  colorMode: 'clean' | 'vario' | 'speed';
+  /** layer rotta XC (settori tratteggiati coi punti di virata) */
+  showRoute: boolean;
+  /** richiesta di inquadratura panoramica dell'intero volo (regista video) */
+  overviewSeq: number;
   /** condividere campioni di vento anonimi col profilo di zona */
   shareAnon: boolean;
   /** override del tipo di volo ('auto' = riconosciuto dai dati) */
@@ -62,7 +66,10 @@ interface AppState {
   setSpeed: (s: number) => void;
   setFollowPilot: (f: boolean) => void;
   setShowWind: (v: boolean) => void;
-  setColorMode: (m: 'vario' | 'speed') => void;
+  setColorMode: (m: 'clean' | 'vario' | 'speed') => void;
+  setShowRoute: (v: boolean) => void;
+  /** chiede alla mappa un'inquadratura panoramica dell'intero volo */
+  requestOverview: () => void;
   setShareAnon: (v: boolean) => void;
   setFlightTypeOverride: (v: 'auto' | FlightType) => void;
   setIgcText: (v: string | null) => void;
@@ -94,7 +101,9 @@ export const useStore = create<AppState>((set) => ({
   flyTo: null,
   followPilot: false,
   showWind: true,
-  colorMode: 'vario',
+  colorMode: 'clean',
+  showRoute: true,
+  overviewSeq: 0,
   shareAnon: false,
   flightTypeOverride: 'auto',
   igcText: null,
@@ -120,6 +129,8 @@ export const useStore = create<AppState>((set) => ({
   setFollowPilot: (f) => set({ followPilot: f }),
   setShowWind: (v) => set({ showWind: v }),
   setColorMode: (m) => set({ colorMode: m }),
+  setShowRoute: (v) => set({ showRoute: v }),
+  requestOverview: () => set((st) => ({ overviewSeq: st.overviewSeq + 1 })),
   setShareAnon: (v) => set({ shareAnon: v }),
   setFlightTypeOverride: (v) => set({ flightTypeOverride: v }),
   setIgcText: (v) => set({ igcText: v }),
