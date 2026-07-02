@@ -14,7 +14,11 @@ import { CoachPanel } from './components/CoachPanel';
 import { FlightTypeBadge } from './components/FlightTypeBadge';
 import { LangSwitcher } from './components/LangSwitcher';
 import { MapResizer } from './components/MapResizer';
+import { ShareButton } from './components/ShareButton';
+import { XcLegsPanel } from './components/XcLegsPanel';
 import { useFlightType } from './state/useFlightType';
+import { fetchSharedFlight } from './api/share';
+import { loadFlightFromText } from './lib/loadFlight';
 import { t } from './i18n';
 
 export default function App() {
@@ -24,6 +28,18 @@ export default function App() {
   const { effective } = useFlightType();
 
   useEffect(() => startPlaybackLoop(), []);
+
+  // volo condiviso via link (?f=token): caricalo all'avvio
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('f');
+    if (!token) return;
+    const st = useStore.getState();
+    if (st.status !== 'empty') return;
+    st.setLoading();
+    fetchSharedFlight(token)
+      .then((igc) => loadFlightFromText(igc))
+      .catch(() => useStore.getState().setError(t(useStore.getState().lang, 'sharedNotFound')));
+  }, []);
 
   if (status !== 'ready') {
     return <UploadDropzone />;
@@ -39,6 +55,7 @@ export default function App() {
       <header className="topbar">
         <span className="logo">SkyCoach</span>
         <div className="topbar-right">
+          <ShareButton />
           <LangSwitcher />
           <button className="link-btn" onClick={reset}>
             {t(lang, 'loadAnother')}
@@ -56,6 +73,7 @@ export default function App() {
         <aside className="sidebar">
           <FlightTypeBadge />
           <StatsPanel />
+          {isXc && <XcLegsPanel />}
           <CoachPanel />
           {showThermalsWind && <ThermalList />}
           <GlideEfficiencyPanel />

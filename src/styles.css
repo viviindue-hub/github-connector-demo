@@ -132,6 +132,38 @@ body,
   gap: 14px;
 }
 
+.share-btn {
+  background: var(--accent);
+  color: #1a1408;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.share-btn:disabled {
+  opacity: 0.6;
+}
+
+.video-btn {
+  background: #2c3543;
+  color: #e6e9ee;
+  border: 1px solid #39414e;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.video-btn.rec {
+  background: #7a1f1f;
+  border-color: #a33;
+  color: #ffd7d7;
+  animation: blink 1.2s step-end infinite;
+}
+
 .lang-switch {
   display: inline-flex;
   border: 1px solid #39414e;

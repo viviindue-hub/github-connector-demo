@@ -43,6 +43,8 @@ interface AppState {
   shareAnon: boolean;
   /** override del tipo di volo ('auto' = riconosciuto dai dati) */
   flightTypeOverride: 'auto' | FlightType;
+  /** testo IGC grezzo del volo corrente (per la condivisione via link) */
+  igcText: string | null;
 
   setLoading: () => void;
   setError: (msg: string) => void;
@@ -63,6 +65,7 @@ interface AppState {
   setColorMode: (m: 'vario' | 'speed') => void;
   setShareAnon: (v: boolean) => void;
   setFlightTypeOverride: (v: 'auto' | FlightType) => void;
+  setIgcText: (v: string | null) => void;
   setLang: (l: Lang) => void;
   requestFlyTo: (target: Omit<FlyToTarget, 'seq'>) => void;
   reset: () => void;
@@ -94,6 +97,7 @@ export const useStore = create<AppState>((set) => ({
   colorMode: 'vario',
   shareAnon: false,
   flightTypeOverride: 'auto',
+  igcText: null,
 
   setLoading: () => set({ status: 'loading', errorMsg: null }),
   setError: (msg) => set({ status: 'error', errorMsg: msg, playing: false }),
@@ -118,6 +122,7 @@ export const useStore = create<AppState>((set) => ({
   setColorMode: (m) => set({ colorMode: m }),
   setShareAnon: (v) => set({ shareAnon: v }),
   setFlightTypeOverride: (v) => set({ flightTypeOverride: v }),
+  setIgcText: (v) => set({ igcText: v }),
   setLang: (l) => set({ lang: l }),
   requestFlyTo: (target) =>
     set((st) => ({
@@ -138,6 +143,7 @@ export const useStore = create<AppState>((set) => ({
       playing: false,
       flyTo: null,
       flightTypeOverride: 'auto',
+      igcText: null,
     }),
 }));
 
