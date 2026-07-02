@@ -41,8 +41,6 @@ interface AppState {
   colorMode: 'clean' | 'vario' | 'speed';
   /** layer rotta XC (settori tratteggiati coi punti di virata) */
   showRoute: boolean;
-  /** richiesta di inquadratura panoramica dell'intero volo (regista video) */
-  overviewSeq: number;
   /** condividere campioni di vento anonimi col profilo di zona */
   shareAnon: boolean;
   /** override del tipo di volo ('auto' = riconosciuto dai dati) */
@@ -68,8 +66,6 @@ interface AppState {
   setShowWind: (v: boolean) => void;
   setColorMode: (m: 'clean' | 'vario' | 'speed') => void;
   setShowRoute: (v: boolean) => void;
-  /** chiede alla mappa un'inquadratura panoramica dell'intero volo */
-  requestOverview: () => void;
   setShareAnon: (v: boolean) => void;
   setFlightTypeOverride: (v: 'auto' | FlightType) => void;
   setIgcText: (v: string | null) => void;
@@ -103,7 +99,6 @@ export const useStore = create<AppState>((set) => ({
   showWind: true,
   colorMode: 'clean',
   showRoute: true,
-  overviewSeq: 0,
   shareAnon: false,
   flightTypeOverride: 'auto',
   igcText: null,
@@ -130,7 +125,6 @@ export const useStore = create<AppState>((set) => ({
   setShowWind: (v) => set({ showWind: v }),
   setColorMode: (m) => set({ colorMode: m }),
   setShowRoute: (v) => set({ showRoute: v }),
-  requestOverview: () => set((st) => ({ overviewSeq: st.overviewSeq + 1 })),
   setShareAnon: (v) => set({ shareAnon: v }),
   setFlightTypeOverride: (v) => set({ flightTypeOverride: v }),
   setIgcText: (v) => set({ igcText: v }),

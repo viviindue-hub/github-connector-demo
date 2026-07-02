@@ -1,10 +1,10 @@
-import { useStore } from '../state/store';
 import type { DerivedSeries, FlightAnalysis } from './types';
 
 /**
  * Regista automatico del video social (~30 s): sceglie i momenti chiave del
  * volo dall'analisi e costruisce uno storyboard — panoramica di apertura,
  * 2-3 highlight con camera che segue, zoom-out finale. Nessuna regia manuale.
+ * Lo storyboard è consumato dal renderer in background (renderVideo.ts).
  */
 
 export interface Scene {
@@ -15,7 +15,6 @@ export interface Scene {
 }
 
 const HIGHLIGHT_S = 6.5;
-const MAX_SPEED = 80;
 
 export function buildStoryboard(series: DerivedSeries, analysis: FlightAnalysis): Scene[] {
   const t0 = series.t[0];
@@ -63,40 +62,4 @@ export function buildStoryboard(series: DerivedSeries, analysis: FlightAnalysis)
   }
   scenes.push({ kind: 'overview', durS: 6 });
   return scenes;
-}
-
-export interface CinemaHandle {
-  cancel: () => void;
-}
-
-/** Esegue lo storyboard pilotando replay e camera; onDone a fine film. */
-export function runCinema(scenes: Scene[], onDone: () => void): CinemaHandle {
-  let timer = 0;
-  let i = 0;
-
-  const step = () => {
-    if (i >= scenes.length) {
-      onDone();
-      return;
-    }
-    const sc = scenes[i++];
-    const st = useStore.getState();
-    if (sc.kind === 'overview') {
-      st.setPlaying(false);
-      st.setFollowPilot(false);
-      st.requestOverview();
-    } else {
-      const durMs = (sc.endT ?? 0) - (sc.startT ?? 0);
-      st.setTime(sc.startT ?? 0);
-      st.setFollowPilot(true);
-      st.setSpeed(Math.max(1, Math.min(MAX_SPEED, Math.round(durMs / 1000 / sc.durS))));
-      st.setPlaying(true);
-    }
-    timer = window.setTimeout(step, sc.durS * 1000);
-  };
-  step();
-
-  return {
-    cancel: () => clearTimeout(timer),
-  };
 }

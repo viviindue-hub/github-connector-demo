@@ -74,7 +74,6 @@ export function CesiumViewer() {
   const showWind = useStore((s) => s.showWind);
   const showRoute = useStore((s) => s.showRoute);
   const colorMode = useStore((s) => s.colorMode);
-  const overviewSeq = useStore((s) => s.overviewSeq);
 
   // creazione viewer (una volta)
   useEffect(() => {
@@ -90,8 +89,6 @@ export function CesiumViewer() {
       const viewer = new Viewer(containerRef.current, {
         terrainProvider,
         baseLayer,
-        // necessario per catturare il canvas nel video export
-        contextOptions: { webgl: { preserveDrawingBuffer: true } },
         animation: false,
         timeline: false,
         baseLayerPicker: false,
@@ -345,14 +342,6 @@ export function CesiumViewer() {
       );
     });
   }, [series, viewerReady, showRoute]);
-
-  // panoramica dell'intero volo (usata dal regista video e riusabile)
-  useEffect(() => {
-    const viewer = viewerRef.current;
-    if (!viewer || viewer.isDestroyed() || overviewSeq === 0 || !trackRectRef.current) return;
-    viewer.trackedEntity = undefined;
-    viewer.camera.flyTo({ destination: trackRectRef.current, duration: 3.2 });
-  }, [overviewSeq]);
 
   return (
     <div className="cesium-wrap">
