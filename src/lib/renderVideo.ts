@@ -2,13 +2,13 @@ import {
   BoundingSphere,
   CallbackProperty,
   Cartesian3,
-  Color,
   GeometryInstance,
   HeadingPitchRange,
   Math as CesiumMath,
   PolylineColorAppearance,
   PolylineGeometry,
   Primitive,
+  VerticalOrigin,
   Viewer,
 } from 'cesium';
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
@@ -34,6 +34,18 @@ const FPS = 30;
 const FONT = "-apple-system, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif";
 /** quota di progresso riservata al pre-caricamento del terreno */
 const PREWARM_SHARE = 0.15;
+
+// Silhouette parapendio (vela vista da dietro + fasci + pilota): il marker
+// del video. Ancorata in basso (il pilota sta sul punto della traccia).
+const PARAGLIDER_SVG =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'>" +
+      "<path d='M8 30 Q48 2 88 30 Q78 42 48 38 Q18 42 8 30 Z' fill='#e8b33c' stroke='rgba(0,0,0,0.7)' stroke-width='3' stroke-linejoin='round'/>" +
+      "<path d='M14 33 L46 76 M30 38 L47 76 M66 38 L49 76 M82 33 L50 76' stroke='rgba(255,255,255,0.9)' stroke-width='2' fill='none'/>" +
+      "<circle cx='48' cy='82' r='7' fill='white' stroke='rgba(0,0,0,0.7)' stroke-width='3'/>" +
+      '</svg>',
+  );
 
 export interface VideoOptions {
   /** dati live in sovraimpressione (quota, vario, velocità) */
@@ -212,11 +224,11 @@ export async function generateFlightVideo(
     const pilotPos = { current: positionAtTime(series, series.t[0]) };
     viewer.entities.add({
       position: new CallbackProperty(() => pilotPos.current, false) as never,
-      point: {
-        pixelSize: 18,
-        color: Color.WHITE,
-        outlineColor: Color.BLACK,
-        outlineWidth: 3,
+      billboard: {
+        image: PARAGLIDER_SVG,
+        width: 72,
+        height: 72,
+        verticalOrigin: VerticalOrigin.BOTTOM,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
     });
